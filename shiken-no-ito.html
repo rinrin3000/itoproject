@@ -142,6 +142,8 @@ nav button ruby rt{font-size:.55em}
 </div>
 
 <script>
+(function(){
+
 /* =====================================================================
    ==================  DATA — EDITABLE CONTENT SECTION  =================
    =====================================================================
@@ -2214,8 +2216,6 @@ const GRAM_CH=[
 {id:"GC31",lv:3,l:0,t:"文型",jp:"〜に関して / 〜について",en:"regarding ～ / about ～",ja:"その件について説明します。",kn:"そのけんについてせつめいします。",ee:"I'll explain about that matter.",n:"について is everyday; に関して is stiffer and broader. Both attach to nouns only — you'll need 〜ことについて for a clause."},
 {id:"GC32",lv:3,l:0,t:"文型",jp:"〜っぽい",en:"-ish / tends to be ～",ja:"最近、忘れっぽくなった。",kn:"さいきん、わすれっぽくなった。",ee:"I've become forgetful lately.",n:"Casual and usually critical. 子どもっぽい (childish) is an insult; 子どもらしい (childlike) is a compliment — the suffix carries the whole judgement."}
 ];
-</script>
-<script>
 /* =====================================================================
    試験の糸 — non-SRS cram flashcards.
    Sister app to 文型の糸 (which owns the spaced-repetition side).
@@ -2350,6 +2350,7 @@ const FORM_RUBY = {
    iOS/Chrome. Isolated Japanese is always fed as KANA, never kanji, so the
    engine can't misread 行って as おこなって. */
 let JV=null,EV=null,currentU=null,unlocked=false,speakToken=0,noJa=false,voicesSettled=false;
+const SPOKEN=[];   /* rolling log of what was actually voiced — debug + tests */
 function allVoices(){ try{ return speechSynthesis.getVoices()||[]; }catch(e){ return []; } }
 function pickVoices(){
   const vs = allVoices(), isJa = v => v.lang.replace("_","-").startsWith("ja");
@@ -2377,6 +2378,7 @@ function unlock(){ if(unlocked) return; unlocked = true;
 document.addEventListener("touchstart", unlock, {once:true});
 document.addEventListener("click", unlock, {once:true});
 function speak(text, jp=true, rate=0.92, _retry=false){
+  if(!_retry){ SPOKEN.push(text); if(SPOKEN.length>40) SPOKEN.shift(); }
   const myToken = ++speakToken;
   return new Promise(async res=>{
     try{
@@ -2949,24 +2951,42 @@ function renderSettings(){
 }
 
 /* ================= boot ================= */
+/* Everything above lives inside an IIFE so that NOTHING is declared in the
+   global lexical scope. That matters: the auto-updater can replace this
+   document in place, and a top-level `const` here would collide with the
+   same `const` left behind by the outgoing copy — which killed the whole
+   script and left a blank page. One deliberate window property instead. */
+window.__ito = { WORDS, VERBS, GRAM, conjugate, FORMS, S, SPOKEN,
+                 VF, BF, GF, vocabSel, vocabCards, verbSel, verbCards,
+                 gramSel, gramCards, setTab,
+                 get FQ(){ return FQ; }, get FI(){ return FI; },
+                 get shown(){ return FSHOWN; } };
 paintPill();
 VF.s1 = true;
 renderVocab();
 ensureVoices().then(() => { if(noJa && TAB !== "set") setTab(TAB); });
 
+})();
 </script>
 
 <script>
 /* auto-updater: iOS home-screen apps cache HTML hard. On launch, fetch a fresh
-   copy (cache-bypassed); if its version differs, hot-swap the document in place.
-   Same-origin, so localStorage/★ marks are untouched. Bump APPV each release. */
-(function(){var APPV="2026.08.30-5";
+   copy (cache-bypassed); if the server's APPV differs, load the fresh copy.
+
+   We navigate rather than document.write(). document.open() keeps the SAME
+   window, so every top-level const/let from the outgoing copy stays declared
+   and the incoming copy dies on "already been declared" — a blank page.
+   A cache-busted navigation gets a clean realm. The sessionStorage guard
+   plus the new ?v= URL make a reload loop impossible.
+   Same origin either way, so localStorage/★ marks are untouched.
+   Bump APPV each release. */
+(function(){var APPV="2026.08.30-6";
 try{if(sessionStorage.getItem("itoUpd")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
  .then(function(t){var m=t&&t.match(/APPV="([^"]+)"/);
    if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpd",m[1]);}catch(e){}
-     document.open();document.write(t);document.close();}})
+     location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}})
  .catch(function(){});})();
 </script>
 </body>
