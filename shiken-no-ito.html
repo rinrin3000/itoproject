@@ -65,6 +65,19 @@ input::placeholder{color:#6b7585}
 .note{background:var(--card);border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:var(--dim);line-height:1.75}
 .note b{color:var(--thread)}
 .empty{text-align:center;color:var(--dim);font-size:14px;margin-top:34px;line-height:2}
+/* furigana — UI chrome only. Card fronts never carry ruby: that would hand
+   over the very reading being tested. */
+ruby{ruby-position:over}
+rt{font-size:.52em;color:var(--dim);font-weight:400;letter-spacing:0;line-height:1;
+   -webkit-user-select:none;user-select:none}
+nav button ruby rt{font-size:.55em}
+.chip{line-height:1.35}
+.fcue rt,.fans rt{color:var(--dim)}
+.fbtns button rt{color:rgba(18,22,31,.55)}
+.fdone button rt,.ftap rt{color:var(--dim)}
+.fbar .mute{font-size:16px;padding:0 6px;background:none;border:none}
+.fbar .mute.off{opacity:.4}
+.fex .ek{font-size:12px;color:var(--dim);margin-top:5px;line-height:1.6}
 
 /* ---------- flashcard overlay ---------- */
 #flash{position:fixed;inset:0;background:var(--ink);z-index:50;display:none;flex-direction:column}
@@ -110,10 +123,10 @@ input::placeholder{color:#6b7585}
   </span>
 </header>
 <nav>
-  <button id="tab-vocab" class="on">語彙</button>
-  <button id="tab-verb">動詞</button>
-  <button id="tab-gram">文法</button>
-  <button id="tab-set">設定</button>
+  <button id="tab-vocab" class="on"><ruby>語彙<rt>ごい</rt></ruby></button>
+  <button id="tab-verb"><ruby>動詞<rt>どうし</rt></ruby></button>
+  <button id="tab-gram"><ruby>文法<rt>ぶんぽう</rt></ruby></button>
+  <button id="tab-set"><ruby>設定<rt>せってい</rt></ruby></button>
 </nav>
 <main id="main"></main>
 
@@ -121,6 +134,7 @@ input::placeholder{color:#6b7585}
   <div class="fbar">
     <button class="x" id="f-close">✕</button>
     <div class="fprog"><i id="f-prog"></i></div>
+    <button class="x mute" id="f-mute">🔊</button>
     <span class="fnum" id="f-num"></span>
   </div>
   <div class="fwrap" id="f-wrap"></div>
@@ -2315,7 +2329,21 @@ const FORMS = [
   ["masu","ます形","polite form"]
 ];
 const FORM_LABEL = Object.fromEntries(FORMS.map(f=>[f[0],f[1]]));
-const GRP_NAME = {1:"I類（五段）",2:"II類（一段）",3:"III類（不規則）"};
+const GRP_NAME  = {1:"I類（五段）",2:"II類（一段）",3:"III類（不規則）"};
+const GRP_SHORT = {1:"I類",2:"II類",3:"III類"};
+/* furigana. Japanese UI chrome gets ruby; card FRONTS never do (that would
+   hand over the reading being tested). */
+const RB = (b,r) => `<ruby>${b}<rt>${r}</rt></ruby>`;
+const KEI = RB("形","けい");
+const GRP_RUBY = {
+  1:`I${RB("類","るい")}（${RB("五段","ごだん")}）`,
+  2:`II${RB("類","るい")}（${RB("一段","いちだん")}）`,
+  3:`III${RB("類","るい")}（${RB("不規則","ふきそく")}）`};
+const FORM_RUBY = {
+  group:"グループ", dict:RB("辞書形","じしょけい"), nai:"ない"+KEI, te:"て"+KEI,
+  ta:"た"+KEI, nakatta:"なかった"+KEI, pot:RB("可能形","かのうけい"),
+  vol:RB("意向形","いこうけい"), ba:"ば"+KEI, imp:RB("命令形","めいれいけい"),
+  pas:RB("受身形","うけみけい"), cau:RB("使役形","しえきけい"), masu:"ます"+KEI};
 
 /* ================= TTS =================
    Lifted wholesale from 文型の糸 — every line here is load-bearing on
@@ -2458,22 +2486,23 @@ function vocabSel(){
 }
 function renderVocab(){
   const m = $("#main");
-  const lv = [{label:"初級I（L1–25）",k:"s1"},{label:"初級II（L26–50）",k:"s2"}];
+  const SHO = RB("初級","しょきゅう");
+  const lv = [{labelH:SHO+"I（L1–25）",k:"s1"},{labelH:SHO+"II（L26–50）",k:"s2"}];
   const ns = [5,4,3,2,1];
   m.innerHTML = (noJa ? jaWarnHTML() : "") + `
   <p class="hint">Pick a slice of the word list, then flip through it. Nothing here is scheduled — it's a cram pile, not a queue.</p>
-  <div class="sec">みんなの日本語</div>
-  <div class="chips" id="v-lv">${lv.map(x=>`<button class="chip ${VF[x.k]?"on":""}" data-k="${x.k}">${x.label}</button>`).join("")}</div>
+  <div class="sec">みんなの${RB("日本語","にほんご")}</div>
+  <div class="chips" id="v-lv">${lv.map(x=>`<button class="chip ${VF[x.k]?"on":""}" data-k="${x.k}">${x.labelH}</button>`).join("")}</div>
   <div class="sec">JLPT</div>
   <div class="chips" id="v-n">${ns.map(n=>`<button class="chip ${VF.n.has(n)?"on":""}" data-n="${n}">N${n}</button>`).join("")}
     <button class="chip warn ${VF.star?"on":""}" data-star="1">★ キープ</button></div>
-  <div class="sec">絞り込み</div>
+  <div class="sec">${RB("絞","しぼ")}り${RB("込","こ")}み</div>
   <div class="row2">
-    <input type="text" id="v-lr" placeholder="課 e.g. 12-16, 20" value="${esc(VF.lrText||"")}">
+    <input type="text" id="v-lr" placeholder="課（か） e.g. 12-16, 20" value="${esc(VF.lrText||"")}">
     <select id="v-sort">
-      <option value="lesson">課・レベル順</option>
-      <option value="kana">かな順</option>
-      <option value="jlpt">JLPT順</option>
+      <option value="lesson">課（か）・レベル順（じゅん）</option>
+      <option value="kana">かな順（じゅん）</option>
+      <option value="jlpt">JLPT順（じゅん）</option>
       <option value="random">ランダム</option>
     </select>
   </div>
@@ -2482,8 +2511,8 @@ function renderVocab(){
   <div class="gorow">
     <button class="go" id="v-go">▶ めくる</button>
     <select id="v-dir" style="flex:1">
-      <option value="ja">日本語 → 意味</option>
-      <option value="en">意味 → 日本語</option>
+      <option value="ja">日本語（にほんご） → 意味（いみ）</option>
+      <option value="en">意味（いみ） → 日本語（にほんご）</option>
     </select>
   </div>
   <div class="list" id="v-list"></div>`;
@@ -2502,7 +2531,7 @@ function renderVocab(){
 }
 function paintVocab(){
   const sel = vocabSel();
-  $("#v-count").innerHTML = `<b>${sel.length}</b> 語 selected` + (sel.length>400 ? ` — that's a long sitting; consider narrowing.` : "");
+  $("#v-count").innerHTML = `<b>${sel.length}</b> ${RB("語","ご")} selected` + (sel.length>400 ? ` — that's a long sitting; consider narrowing.` : "");
   $("#v-go").disabled = !sel.length;
   const l = $("#v-list");
   if(!sel.length){ l.innerHTML = `<div class="empty">Choose a level or a 課 range above<br>to build a pile.</div>`; return; }
@@ -2526,10 +2555,12 @@ function vocabCards(sel){
   return sel.map(w => {
     const tags = (w.l?`L${w.l}`:"") + (w.l&&w.n?" · ":"") + (w.n?`N${w.n}`:"");
     return dir==="ja"
-      ? { key:"V:"+w.w+"|"+w.r, cue:"日本語 → 意味", front:w.w, frontEn:false, sub:tags,
-          ans:w.m, ansEn:true, kana:w.r, speak:w.r }
-      : { key:"V:"+w.w+"|"+w.r, cue:"意味 → 日本語", front:w.m, frontEn:true, sub:tags,
-          ans:w.w, ansEn:false, kana:w.r, speak:w.r };
+      ? { key:"V:"+w.w+"|"+w.r, cueH:RB("日本語","にほんご")+" → "+RB("意味","いみ"),
+          front:w.w, frontEn:false, sub:tags, ans:w.m, ansEn:true, kana:w.r,
+          sf:w.r, sb:"" }
+      : { key:"V:"+w.w+"|"+w.r, cueH:RB("意味","いみ")+" → "+RB("日本語","にほんご"),
+          front:w.m, frontEn:true, sub:tags, ans:w.w, ansEn:false, kana:w.r,
+          sf:"", sb:w.r };
   });
 }
 
@@ -2567,33 +2598,34 @@ function renderVerb(){
   <p class="hint">Pick verbs, pick forms, drill the cross-product. Group II verbs hiding behind an い-row stem are marked ⚠.</p>
   <div class="sec">グループ</div>
   <div class="chips" id="b-g">
-    ${[1,2,3].map(g=>`<button class="chip ${BF.g.has(g)?"on":""}" data-g="${g}">${GRP_NAME[g]}</button>`).join("")}</div>
+    ${[1,2,3].map(g=>`<button class="chip ${BF.g.has(g)?"on":""}" data-g="${g}">${GRP_RUBY[g]}</button>`).join("")}</div>
   <div class="sec">レベル</div>
   <div class="chips" id="b-lv">
-    <button class="chip ${BF.s1?"on":""}" data-k="s1">初級I（L1–25）</button>
-    <button class="chip ${BF.s2?"on":""}" data-k="s2">初級II（L26–50）</button></div>
-  <div class="sec">特訓</div>
+    <button class="chip ${BF.s1?"on":""}" data-k="s1">${RB("初級","しょきゅう")}I（L1–25）</button>
+    <button class="chip ${BF.s2?"on":""}" data-k="s2">${RB("初級","しょきゅう")}II（L26–50）</button></div>
+  <div class="sec">${RB("特訓","とっくん")}</div>
   <div class="chips" id="b-sp">
-    <button class="chip warn ${BF.trap?"on":""}" data-k="trap">⚠ 同音の罠</button>
-    <button class="chip warn ${BF.pair?"on":""}" data-k="pair">自他ペア</button>
+    <button class="chip warn ${BF.trap?"on":""}" data-k="trap">⚠ ${RB("同音","どうおん")}の${RB("罠","わな")}</button>
+    <button class="chip warn ${BF.pair?"on":""}" data-k="pair">${RB("自他","じた")}ペア</button>
     <button class="chip warn ${BF.star?"on":""}" data-k="star">★ キープ</button></div>
-  <div class="sec">形（複数選択可）</div>
+  <div class="sec">${RB("形","けい")}（${RB("複数選択可","ふくすうせんたくか")}）</div>
   <div class="chips" id="b-f">
-    ${FORMS.map(f=>`<button class="chip sm ${BF.forms.has(f[0])?"on":""}" data-f="${f[0]}">${f[1]}</button>`).join("")}</div>
-  <div class="sec">絞り込み</div>
+    ${FORMS.map(f=>`<button class="chip sm ${BF.forms.has(f[0])?"on":""}" data-f="${f[0]}">${FORM_RUBY[f[0]]}</button>`).join("")}</div>
+  <div class="sec">${RB("絞","しぼ")}り${RB("込","こ")}み</div>
   <div class="row2">
-    <input type="text" id="b-lr" placeholder="課 e.g. 14-19" value="${esc(BF.lrText)}">
+    <input type="text" id="b-lr" placeholder="課（か） e.g. 14-19" value="${esc(BF.lrText)}">
     <select id="b-sort">
-      <option value="lesson">課順</option>
-      <option value="kana">かな順</option>
-      <option value="group">グループ順</option>
+      <option value="lesson">課順（かじゅん）</option>
+      <option value="kana">かな順（じゅん）</option>
+      <option value="group">グループ順（じゅん）</option>
       <option value="random">ランダム</option>
     </select>
   </div>
   <input type="search" id="b-q" placeholder="検索 — 漢字・かな・English" value="${esc(BF.q)}" style="margin-top:8px">
   <div class="count" id="b-count"></div>
   <div class="gorow"><button class="go" id="b-go">▶ めくる</button>
-    <button class="alt" id="b-all">形を全部</button></div>
+    <button class="alt" id="b-all">${RB("形","けい")}を${RB("全部","ぜんぶ")}</button>
+    <button class="alt" id="b-none">${RB("形","けい")}を1つに</button></div>
   <div class="list" id="b-list"></div>`;
   $("#b-sort").value = BF.sort;
   $("#b-g").querySelectorAll("button").forEach(b => b.onclick = ()=>{
@@ -2602,7 +2634,12 @@ function renderVerb(){
   $("#b-sp").querySelectorAll("button").forEach(b => b.onclick = ()=>{ BF[b.dataset.k]=!BF[b.dataset.k]; renderVerb(); });
   $("#b-f").querySelectorAll("button").forEach(b => b.onclick = ()=>{
     const f = b.dataset.f; BF.forms.has(f)?BF.forms.delete(f):BF.forms.add(f); renderVerb(); });
-  $("#b-all").onclick = () => { BF.forms = new Set(FORMS.map(f=>f[0])); renderVerb(); };
+  $("#b-all").onclick  = () => { BF.forms = new Set(FORMS.map(f=>f[0])); renderVerb(); };
+  $("#b-none").onclick = () => {
+    /* keep the single most-recently-useful form so the deck is never empty;
+       stops グループ cards sneaking into a "just ない形" session */
+    const keep = FORMS.map(f=>f[0]).find(f => BF.forms.has(f) && f !== "group") || "dict";
+    BF.forms = new Set([keep]); renderVerb(); };
   $("#b-lr").oninput = e => { BF.lrText = e.target.value; BF.lr = parseRanges(e.target.value,50); paintVerb(); };
   $("#b-q").oninput  = e => { BF.q = e.target.value.trim(); paintVerb(); };
   $("#b-sort").onchange = e => { BF.sort = e.target.value; paintVerb(); };
@@ -2611,7 +2648,7 @@ function renderVerb(){
 }
 function paintVerb(){
   const sel = verbSel(), nf = BF.forms.size;
-  $("#b-count").innerHTML = `<b>${sel.length}</b> 動詞 × <b>${nf}</b> 形 = <b>${sel.length*nf}</b> 枚`;
+  $("#b-count").innerHTML = `<b>${sel.length}</b> ${RB("動詞","どうし")} × <b>${nf}</b> ${RB("形","けい")} = <b>${sel.length*nf}</b> ${RB("枚","まい")}`;
   $("#b-go").disabled = !sel.length || !nf;
   const l = $("#b-list");
   if(!sel.length){ l.innerHTML = `<div class="empty">No verbs match those filters.</div>`; return; }
@@ -2619,7 +2656,7 @@ function paintVerb(){
     const k = "B:"+v.w+"|"+v.r;
     const others = BYREAD[v.r].filter(x=>x!==v).map(x=>x.w).join("・");
     return `<div class="lrow" data-open="${i}"><div class="lft">
-      <div class="lj">${esc(v.w)}<span class="tag g${v.g}">${["","I類","II類","III類"][v.g]}</span>${v.trap?`<span class="tag tr">⚠ ${esc(others)}</span>`:""}${v.p?`<span class="tag jt">⇔ ${esc(v.p)}</span>`:""}</div>
+      <div class="lj">${esc(v.w)}<span class="tag g${v.g}">${GRP_SHORT[v.g]}</span>${v.trap?`<span class="tag tr">⚠ ${esc(others)}</span>`:""}${v.p?`<span class="tag jt">⇔ ${esc(v.p)}</span>`:""}</div>
       <div class="lk">${esc(v.r)}</div><div class="lm">${esc(v.m)}</div></div>
       <div class="rgt"><div><span class="tag">L${v.l}</span></div>
       <div><button class="mini" data-say="${esc(v.r)}">▶</button>
@@ -2631,10 +2668,10 @@ function paintVerb(){
     const i = +row.dataset.open, box = $("#cj-"+i), v = sel[i];
     if(box.style.display !== "none"){ box.style.display = "none"; return; }
     const c = conjugate(v);
-    box.innerHTML = `<div><span class="cf">グループ</span><span class="cv">${GRP_NAME[v.g]}</span></div>` +
+    box.innerHTML = `<div><span class="cf">グループ</span><span class="cv">${GRP_RUBY[v.g]}</span></div>` +
       FORMS.filter(f=>f[0]!=="group").map(f => {
         const [sf,kf] = c[f[0]];
-        return `<div><span class="cf">${f[1]}</span><span class="cv">${esc(sf)}${sf!==kf?`<small>${esc(kf)}</small>`:""}</span></div>`;
+        return `<div><span class="cf">${FORM_RUBY[f[0]]}</span><span class="cv">${esc(sf)}${sf!==kf?`<small>${esc(kf)}</small>`:""}</span></div>`;
       }).join("");
     box.style.display = "block";
   });
@@ -2644,17 +2681,20 @@ function verbCards(sel){
   const order = FORMS.filter(f => BF.forms.has(f[0]));
   sel.forEach(v => order.forEach(f => {
     const key = "B:"+v.w+"|"+v.r;
+    const trapNote = v.trap
+      ? `⚠ ${BYREAD[v.r].filter(x=>x!==v).map(x=>x.w+"（"+GRP_SHORT[x.g]+"）").join("、")} shares this reading — the kanji is the only clue.`
+      : "";
     if(f[0] === "group"){
-      out.push({ key, cue:"どのグループ？", front:v.w, frontEn:false,
-                 sub:v.r + " — " + v.m, ans:GRP_NAME[v.g], ansEn:true, kana:"", speak:v.r,
-                 note: v.trap ? `⚠ Same reading as ${BYREAD[v.r].filter(x=>x!==v).map(x=>x.w+"（"+["","I類","II類","III類"][x.g]+"）").join("、")} — the kanji is the only clue.` : "" });
+      out.push({ key, cueH:"どのグループ？", front:v.w, frontEn:false,
+                 sub:v.r + " — " + v.m, ans:GRP_NAME[v.g], ansH:GRP_RUBY[v.g],
+                 ansEn:false, kana:"", sf:v.r, sb:"", note:trapNote });
     } else {
       const [sf,kf] = conjugate(v)[f[0]];
       if(sf === "—") return;
-      out.push({ key, cue:FORM_LABEL[f[0]], front:v.w, frontEn:false,
-                 sub:`${v.r} — ${v.m}　【${["","I類","II類","III類"][v.g]}】`,
-                 ans:sf, ansEn:false, kana:(sf!==kf?kf:""), speak:kf,
-                 note: v.trap ? `⚠ ${BYREAD[v.r].filter(x=>x!==v).map(x=>x.w+"（"+["","I類","II類","III類"][x.g]+"）").join("、")} shares this reading but conjugates differently.` : "" });
+      out.push({ key, cueH:FORM_RUBY[f[0]], front:v.w, frontEn:false,
+                 sub:`${v.r} — ${v.m}　【${GRP_SHORT[v.g]}】`,
+                 ans:sf, ansEn:false, kana:(sf!==kf?kf:""),
+                 sf:v.r, sb:kf, note:trapNote });
     }
   }));
   return out;
@@ -2687,23 +2727,23 @@ function renderGram(){
   <p class="hint">Patterns, and the contrasts that decide test questions. Every card carries one example and a note on what trips people up.</p>
   <div class="sec">レベル</div>
   <div class="chips" id="g-lv">
-    <button class="chip ${GF.lv.has(1)?"on":""}" data-l="1">初級I</button>
-    <button class="chip ${GF.lv.has(2)?"on":""}" data-l="2">初級II</button>
-    <button class="chip ${GF.lv.has(3)?"on":""}" data-l="3">中級・JLPT</button>
+    <button class="chip ${GF.lv.has(1)?"on":""}" data-l="1">${RB("初級","しょきゅう")}I</button>
+    <button class="chip ${GF.lv.has(2)?"on":""}" data-l="2">${RB("初級","しょきゅう")}II</button>
+    <button class="chip ${GF.lv.has(3)?"on":""}" data-l="3">${RB("中級","ちゅうきゅう")}・JLPT</button>
     <button class="chip warn ${GF.star?"on":""}" data-star="1">★ キープ</button></div>
   <div class="sec">タイプ</div>
   <div class="chips" id="g-t">${GTAGS.map(t=>`<button class="chip sm ${GF.t.has(t)?"on":""}" data-t="${t}">${t}</button>`).join("")}</div>
-  <div class="sec">絞り込み</div>
+  <div class="sec">${RB("絞","しぼ")}り${RB("込","こ")}み</div>
   <div class="row2">
-    <input type="text" id="g-lr" placeholder="課 e.g. 26-30" value="${esc(GF.lrText)}">
-    <select id="g-sort"><option value="lesson">課順</option><option value="random">ランダム</option></select>
+    <input type="text" id="g-lr" placeholder="課（か） e.g. 26-30" value="${esc(GF.lrText)}">
+    <select id="g-sort"><option value="lesson">課順（かじゅん）</option><option value="random">ランダム</option></select>
   </div>
   <input type="search" id="g-q" placeholder="検索 — 文型・例文・English" value="${esc(GF.q)}" style="margin-top:8px">
   <div class="count" id="g-count"></div>
   <div class="gorow"><button class="go" id="g-go">▶ めくる</button>
     <select id="g-dir" style="flex:1">
-      <option value="jp">文型 → 意味</option>
-      <option value="en">意味 → 文型</option>
+      <option value="jp">文型（ぶんけい） → 意味（いみ）</option>
+      <option value="en">意味（いみ） → 文型（ぶんけい）</option>
     </select></div>
   <div class="list" id="g-list"></div>`;
   $("#g-sort").value = GF.sort; $("#g-dir").value = S.cfg.gdir;
@@ -2722,7 +2762,7 @@ function renderGram(){
 }
 function paintGram(){
   const sel = gramSel();
-  $("#g-count").innerHTML = `<b>${sel.length}</b> 文型 selected`;
+  $("#g-count").innerHTML = `<b>${sel.length}</b> ${RB("文型","ぶんけい")} selected`;
   $("#g-go").disabled = !sel.length;
   const l = $("#g-list");
   if(!sel.length){ l.innerHTML = `<div class="empty">No patterns match those filters.</div>`; return; }
@@ -2739,11 +2779,14 @@ function paintGram(){
 }
 function gramCards(sel){
   const dir = S.cfg.gdir;
-  return sel.map(g => dir==="jp"
-    ? { key:"G:"+g.id, cue:g.t + (g.l?`　L${g.l}`:"　中級"), front:g.jp, frontEn:false, sub:"",
-        ans:g.en, ansEn:true, kana:"", speak:g.kn, ex:{ja:g.ja, kn:g.kn, en:g.ee}, note:g.n }
-    : { key:"G:"+g.id, cue:g.t + (g.l?`　L${g.l}`:"　中級"), front:g.en, frontEn:true, sub:"",
-        ans:g.jp, ansEn:false, kana:"", speak:g.kn, ex:{ja:g.ja, kn:g.kn, en:g.ee}, note:g.n });
+  return sel.map(g => {
+    const cueH = esc(g.t) + (g.l ? `　L${g.l}` : `　${RB("中級","ちゅうきゅう")}`);
+    return dir==="jp"
+      ? { key:"G:"+g.id, cueH, front:g.jp, frontEn:false, sub:"", ans:g.en, ansEn:true,
+          kana:"", sf:"", sb:g.kn, ex:{ja:g.ja, kn:g.kn, en:g.ee}, note:g.n }
+      : { key:"G:"+g.id, cueH, front:g.en, frontEn:true, sub:"", ans:g.jp, ansEn:false,
+          kana:"", sf:"", sb:g.kn, ex:{ja:g.ja, kn:g.kn, en:g.ee}, note:g.n };
+  });
 }
 
 /* =====================================================================
@@ -2765,55 +2808,86 @@ function endFlash(){
   if(TAB==="vocab") paintVocab(); else if(TAB==="verb") paintVerb(); else if(TAB==="gram") paintGram();
 }
 $("#f-close").onclick = endFlash;
+$("#f-mute").onclick = () => { S.cfg.autoplay = !S.cfg.autoplay; save(); paintMute();
+  if(!S.cfg.autoplay){ try{ speechSynthesis.cancel(); }catch(e){} } };
+function paintMute(){
+  const b = $("#f-mute");
+  b.textContent = S.cfg.autoplay ? "🔊" : "🔇";
+  b.classList.toggle("off", !S.cfg.autoplay);
+  b.title = S.cfg.autoplay ? "自動読み上げ ON" : "自動読み上げ OFF";
+}
+/* audio that matches what is on screen: the front's own reading before the
+   flip, the answer's reading after. Never the answer while the front shows. */
+function autoSay(){
+  if(!S.cfg.autoplay) return;
+  const c = FQ[FI]; if(!c) return;
+  const t = FSHOWN ? (c.sb || c.sf) : c.sf;
+  if(t) speak(t);
+}
+function sayNow(){
+  const c = FQ[FI]; if(!c) return;
+  const t = FSHOWN ? (c.sb || c.sf) : (c.sf || c.sb);
+  if(t) speak(t);
+}
 function drawCard(){
   if(FI >= FQ.length) return drawDone();
   const c = FQ[FI];
   $("#f-prog").style.width = (FI/FTOTAL*100) + "%";
   $("#f-num").textContent = `${FI+1} / ${FQ.length}`;
   $("#f-wrap").innerHTML = `
-    <div class="fcue">${esc(c.cue||"")}</div>
+    <div class="fcue">${c.cueH || ""}</div>
     <div class="ffront ${c.frontEn?"en":""}">${esc(c.front)}</div>
     ${c.sub ? `<div class="fsub">${esc(c.sub)}</div>` : ""}
     <div id="f-back"></div>
-    <div class="ftap" id="f-tap">タップして答え</div>`;
+    <div class="ftap" id="f-tap">タップして${RB("答","こた")}え</div>`;
   $("#f-btns").innerHTML = `
-    <button class="aud" id="f-aud">🔊</button>
+    <button class="aud" id="f-aud">🔈</button>
     <button class="strb ${starred(c.key)?"on":""}" id="f-star">★</button>
-    <button class="fb-again" id="f-again">もう一度</button>
+    <button class="fb-again" id="f-again">もう${RB("一度","いちど")}</button>
     <button class="fb-ok" id="f-ok">できた</button>`;
   FSHOWN = false;
-  $("#f-wrap").onclick = reveal;
-  $("#f-aud").onclick = e => { e.stopPropagation(); if(c.speak) speak(c.speak); };
-  $("#f-star").onclick = e => { e.stopPropagation(); toggleStar(c.key); $("#f-star").classList.toggle("on"); };
-  $("#f-again").onclick = () => { if(!FSHOWN) return reveal(); FMISS.push(c); FI++; drawCard(); };
-  $("#f-ok").onclick    = () => { if(!FSHOWN) return reveal(); FRIGHT++; FI++; drawCard(); };
-  if(!c.frontEn && c.speak && S.cfg.autoplay) speak(c.speak);
+  $("#f-wrap").onclick = flip;
+  $("#f-aud").onclick   = e => { e.stopPropagation(); sayNow(); };
+  $("#f-star").onclick  = e => { e.stopPropagation(); toggleStar(c.key); $("#f-star").classList.toggle("on"); };
+  $("#f-again").onclick = () => { if(!FSHOWN) return flip(); FMISS.push(c); FI++; drawCard(); };
+  $("#f-ok").onclick    = () => { if(!FSHOWN) return flip(); FRIGHT++; FI++; drawCard(); };
+  paintMute();
+  autoSay();
 }
-function reveal(){
-  if(FSHOWN) return;
-  FSHOWN = true;
-  const c = FQ[FI];
+/* tap toggles both ways — flip back to re-test yourself without advancing */
+function flip(){
+  const c = FQ[FI]; if(!c) return;
+  FSHOWN = !FSHOWN;
+  if(!FSHOWN){
+    $("#f-back").innerHTML = "";
+    $("#f-tap").style.display = "";
+    try{ speechSynthesis.cancel(); }catch(e){}
+    return;
+  }
   $("#f-tap").style.display = "none";
   $("#f-back").innerHTML = `<div class="fback">
-    <div class="fans ${c.ansEn?"en":""}">${esc(c.ans)}</div>
+    <div class="fans ${c.ansEn?"en":""}">${c.ansH || esc(c.ans)}</div>
     ${c.kana ? `<div class="fkana">${esc(c.kana)}</div>` : ""}
-    ${c.ex ? `<div class="fex"><div class="ej">${esc(c.ex.ja)}</div><div class="ee">${esc(c.ex.en)}</div></div>` : ""}
+    ${c.ex ? `<div class="fex"><div class="ej">${esc(c.ex.ja)}</div>
+      <div class="ek">${esc(c.ex.kn)}</div><div class="ee">${esc(c.ex.en)}</div></div>` : ""}
     ${c.note ? `<div class="fnote">${esc(c.note)}</div>` : ""}
+    <div class="ftap">タップして${RB("戻","もど")}る</div>
   </div>`;
-  if(S.cfg.autoplay && c.speak) speak(c.speak);
+  autoSay();
 }
 function drawDone(){
   $("#f-prog").style.width = "100%";
   $("#f-num").textContent = `${FTOTAL} / ${FTOTAL}`;
   const pct = FTOTAL ? Math.round(FRIGHT/FTOTAL*100) : 0;
+  $("#f-wrap").onclick = null;
   $("#f-wrap").innerHTML = `<div class="fdone">
-    <div class="big">糸を通しました。</div>
+    <div class="big">${RB("糸","いと")}を${RB("通","とお")}しました。</div>
     <div class="sc">${pct}%</div>
-    <div class="fsub">${FRIGHT} / ${FTOTAL} できた${FMISS.length?`　・　${FMISS.length} 枚が残り`:""}</div>
+    <div class="fsub">${FRIGHT} / ${FTOTAL} できた${FMISS.length?`　・　${FMISS.length} ${RB("枚","まい")}が${RB("残","のこ")}り`:""}</div>
     <div style="margin-top:26px">
-      ${FMISS.length?`<button class="pri" id="d-miss">間違えた ${FMISS.length} 枚をもう一度</button>`:""}
-      <button id="d-all">全部もう一度</button>
-      <button id="d-end">終わる</button>
+      ${FMISS.length?`<button class="pri" id="d-miss">${RB("間違","まちが")}えた ${FMISS.length} ${RB("枚","まい")}をもう${RB("一度","いちど")}</button>`:""}
+      <button id="d-all">${RB("全部","ぜんぶ")}もう${RB("一度","いちど")}</button>
+      <button id="d-end">${RB("終","お")}わる</button>
     </div></div>`;
   $("#f-btns").innerHTML = "";
   if(FMISS.length) $("#d-miss").onclick = () => startFlash(FMISS);
@@ -2832,17 +2906,17 @@ function renderSettings(){
   const opts = (list, sel) => `<option value="">自動で選ぶ</option>` +
     list.map(v => `<option value="${esc(v.voiceURI)}" ${v.voiceURI===sel?"selected":""}>${esc(v.name)}${v.localService?"（端末内）":"（ネット）"}</option>`).join("");
   m.innerHTML = (noJa ? jaWarnHTML() : "") + `
-  <div class="sec">音声設定</div>
+  <div class="sec">${RB("音声設定","おんせいせってい")}</div>
   <div class="hint" style="margin-bottom:8px">Japanese is always spoken from kana, never kanji — so 行って can't come out as おこなって.</div>
   <select id="s-jv" style="margin-bottom:8px">${opts(ja, S.cfg.jvURI)}</select>
   <select id="s-ev">${opts(en, S.cfg.evURI)}</select>
   <div class="chips" style="margin-top:10px">
     <button class="chip" id="s-test">▶ テスト</button>
-    <button class="chip" id="s-reset">音声リセット</button>
+    <button class="chip" id="s-reset">${RB("音声","おんせい")}リセット</button>
   </div>
-  <div class="sec">めくり方</div>
+  <div class="sec">めくり${RB("方","かた")}</div>
   <div class="chips">
-    <button class="chip ${S.cfg.autoplay?"on":""}" id="s-auto">自動で読み上げ</button>
+    <button class="chip ${S.cfg.autoplay?"on":""}" id="s-auto">${RB("自動","じどう")}で${RB("読","よ")}み${RB("上","あ")}げ</button>
     <button class="chip ${S.cfg.shuffle?"on":""}" id="s-shuf">シャッフル</button>
   </div>
   <div class="sec">キープ</div>
@@ -2886,7 +2960,7 @@ ensureVoices().then(() => { if(noJa && TAB !== "set") setTab(TAB); });
 /* auto-updater: iOS home-screen apps cache HTML hard. On launch, fetch a fresh
    copy (cache-bypassed); if its version differs, hot-swap the document in place.
    Same-origin, so localStorage/★ marks are untouched. Bump APPV each release. */
-(function(){var APPV="2026.08.30-4";
+(function(){var APPV="2026.08.30-5";
 try{if(sessionStorage.getItem("itoUpd")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
