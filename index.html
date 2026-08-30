@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>糸 — Ito Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#12161f;--card:#1b222e;--line:#2e3949;--thread:#e8e0ce;--ai:#7d9cc9;--akane:#d4685e;--dim:#8b95a5;--ad-gap:90px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--thread);font-family:'Noto Sans JP',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;padding-bottom:var(--ad-gap)}
+h1{font-family:'Shippori Mincho B1',serif;font-size:56px;font-weight:700;letter-spacing:.1em}
+h1 span{color:var(--akane)}
+p.sub{color:var(--dim);font-size:13px;margin:10px 0 34px;letter-spacing:.14em}
+a.app{display:block;width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 20px;margin-top:14px;text-decoration:none;color:var(--thread);transition:border-color .15s}
+a.app:active,a.app:hover{border-color:var(--akane)}
+a.app .jj{font-family:'Shippori Mincho B1',serif;font-size:26px}
+a.app .jj b{color:var(--akane);font-weight:700}
+a.app .dd{color:var(--dim);font-size:13px;margin-top:6px;line-height:1.7}
+footer{margin-top:40px;color:var(--dim);font-size:11px;letter-spacing:.12em}
+</style>
+</head>
+<body>
+<h1>糸<span>。</span></h1>
+<p class="sub">THE ITO PROJECT — LEARN BY THREAD</p>
+<a class="app" href="kanji-web.html">
+  <div class="jj">漢字<b>の</b>糸</div>
+  <div class="dd">2,001 kanji ・ 7,319 words ・ Minna I &amp; II + JLPT N5–N1. Look up, filter, follow the threads.</div>
+</a>
+<a class="app" href="bunkei-no-ito.html">
+  <div class="jj">文型<b>の</b>糸</div>
+  <div class="dd">Anchor-sentence SRS ・ re-thread the slot ・ hands-free 型ドリル with gaps for speaking.</div>
+</a>
+<footer>ARLIN × CLAUDE NIHONGO</footer>
+<script>
+/* auto-updater: iOS home-screen apps cache HTML hard. On launch, fetch a fresh
+   copy (cache-bypassed); if its version differs, hot-swap the document in place.
+   Same-origin, so localStorage/SRS progress is untouched. Bump APPV each release. */
+(function(){var APPV="2026.08.30-1";
+try{if(sessionStorage.getItem("itoUpd")===APPV)return;}catch(e){}
+fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
+ .then(function(r){return r.ok?r.text():""})
+ .then(function(t){var m=t&&t.match(/APPV="([^"]+)"/);
+   if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpd",m[1]);}catch(e){}
+     document.open();document.write(t);document.close();}})
+ .catch(function(){});})();
+</script>
+</body>
+</html>

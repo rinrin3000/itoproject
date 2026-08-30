@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>文型の糸 — Pattern Threads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12161f; --card:#1b222e; --card2:#232c3a; --line:#2e3949;
+  --thread:#e8e0ce; --ai:#7d9cc9; --akane:#d4685e; --moegi:#93b06b;
+  --dim:#8b95a5; --ad-gap:90px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--ink);color:var(--thread);font-family:'Noto Sans JP',sans-serif;min-height:100vh;padding-bottom:var(--ad-gap)}
+header{padding:18px 16px 10px;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line)}
+h1{font-family:'Shippori Mincho B1',serif;font-size:22px;font-weight:700;letter-spacing:.06em}
+h1 span{color:var(--akane)}
+#due-pill{font-size:12px;color:var(--ink);background:var(--thread);border-radius:999px;padding:3px 10px;font-weight:700}
+nav{display:flex;border-bottom:1px solid var(--line)}
+nav button{flex:1;background:none;border:none;color:var(--dim);font-family:inherit;font-size:14px;font-weight:500;padding:12px 0;border-bottom:2px solid transparent}
+nav button.on{color:var(--thread);border-bottom-color:var(--akane)}
+main{padding:18px 16px;max-width:560px;margin:0 auto}
+.hint{color:var(--dim);font-size:13px;line-height:1.7}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 18px;margin-top:14px;position:relative}
+.know-btn{position:absolute;top:-9px;right:12px;background:var(--ink);border:1px solid var(--line);color:var(--dim);font-family:inherit;font-size:11px;padding:2px 9px;border-radius:999px}
+.pcard .tag{position:absolute;top:-9px;left:14px;background:var(--ink);border:1px solid var(--line);color:var(--ai);font-size:11px;padding:2px 9px;border-radius:999px;letter-spacing:.1em}
+.en{font-size:16px;line-height:1.6;color:var(--thread)}
+.en b{color:var(--akane);font-weight:600;border-bottom:1px dashed var(--akane)}
+.ja{font-family:'Shippori Mincho B1',serif;font-size:25px;line-height:1.75;margin-top:14px;word-break:keep-all;overflow-wrap:anywhere}
+.slot{color:var(--akane);border-bottom:2px dashed var(--akane);padding:0 1px}
+.veil .ja,.veil .swaps,.veil .audio-row{display:none}
+.reveal-btn{width:100%;margin-top:16px;background:var(--card2);border:1px solid var(--line);color:var(--thread);font-family:inherit;font-size:15px;padding:14px;border-radius:10px}
+.audio-row{display:flex;gap:8px;margin-top:14px}
+.audio-row button,.chip{background:var(--card2);border:1px solid var(--line);color:var(--thread);font-family:inherit;border-radius:999px;font-size:13px;padding:8px 14px}
+.chip.onchip{border-color:var(--akane);color:var(--akane)}
+.swaps{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+.swaps .lab{width:100%;font-size:11px;color:var(--dim);letter-spacing:.12em}
+.grades{display:flex;gap:8px;margin-top:18px}
+.grades button{flex:1;border:none;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;padding:14px 0;color:var(--ink)}
+.g-again{background:#b0655d}.g-hard{background:#c9b370}.g-good{background:var(--moegi)}.g-easy{background:var(--ai)}
+.gsub{display:block;font-size:10px;font-weight:400;opacity:.75}
+.drill-box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 18px;margin-top:14px;min-height:200px}
+.drill-en{font-size:17px;color:var(--thread);line-height:1.6;min-height:54px}
+.drill-ja{font-family:'Shippori Mincho B1',serif;font-size:24px;line-height:1.7;margin-top:14px;color:var(--dim);min-height:70px}
+.drill-ja.spoken{color:var(--thread)}
+.drill-ja .slot{border-bottom:2px dashed var(--akane)}
+.pulse{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--akane);margin-right:8px;animation:pu 1.2s infinite}
+@keyframes pu{0%,100%{opacity:.25}50%{opacity:1}}
+.controls{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.controls button,select{background:var(--card2);border:1px solid var(--line);color:var(--thread);font-family:inherit;font-size:14px;padding:10px 16px;border-radius:10px}
+.controls .go{background:var(--akane);color:var(--ink);font-weight:700;border:none}
+.brow{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:8px;font-size:15px;gap:10px}
+.brow .jj{font-family:'Shippori Mincho B1',serif;flex:1}
+.brow .meta{font-size:11px;color:var(--dim);white-space:nowrap}
+.sec{margin-top:22px;font-size:12px;color:var(--ai);letter-spacing:.18em}
+.note{background:var(--card);border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:var(--dim);line-height:1.7}
+.done{font-family:'Shippori Mincho B1',serif;font-size:22px;text-align:center;margin-top:60px;line-height:2}
+.done small{display:block;font-family:'Noto Sans JP';font-size:13px;color:var(--dim)}
+</style>
+</head>
+<body>
+<header><h1>文型<span>の</span>糸</h1><span style="display:flex;gap:10px;align-items:center"><span id="due-pill">…</span><a href="index.html" title="Back to the Ito hub" style="text-decoration:none;font-family:'Shippori Mincho B1',serif;font-size:15px;color:var(--akane);border:1px solid var(--line);border-radius:999px;padding:4px 12px">糸。</a></span></header>
+<nav>
+  <button id="tab-rev" class="on">今日の復習</button>
+  <button id="tab-drill">型ドリル</button>
+  <button id="tab-browse">一覧</button>
+  <button id="tab-set">設定</button>
+</nav>
+<main id="main"></main>
+
+<script>
+/* =====================================================================
+   ==================  DECK — EDITABLE CONTENT SECTION  =================
+   =====================================================================
+   HOW TO ADD OR UPDATE CONTENT (paste from Claude or write your own):
+
+   Each entry is ONE object in the DECK array, in this exact shape:
+
+   {id:"XX99", t:"タグ名", ja:"文の【スロット】部分。", en:"English with the *slot* marked.",
+    sw:[["swap1 JA","swap1 EN"],["swap2 JA","swap2 EN"],["swap3 JA","swap3 EN"]]},
+
+   RULES (these keep everyone's SRS progress safe):
+   1. id must be UNIQUE and NEVER changed or reused once shipped.
+      Progress is keyed to id, so you can add, delete, and reorder
+      entries freely — schedules survive any update.
+   2. ja must contain exactly one 【…】 slot (for pure set phrases,
+      wrap the WHOLE phrase and give sibling phrases as swaps).
+   3. en marks the matching part with *asterisks*.
+   4. Paste new entries anywhere between BEGIN DECK and END DECK,
+      then re-upload the file to the SAME host domain. Done.
+   ===================== BEGIN DECK ==================================== */
+const DECK=[
+/* ---- 基本 (Minna I) ---- */
+{id:"KH01",t:"基本",ja:"【コーヒー】が飲みたいです。",en:"I want to drink *coffee*.",sw:[["冷たい水","cold water"],["ビール","a beer"],["お茶","tea"]]},
+{id:"KH02",t:"基本",ja:"【魚】のほうが好きです。",en:"I like *fish* better.",sw:[["肉","meat"],["夏","summer"],["静かな所","quiet places"]]},
+{id:"KH03",t:"基本",ja:"【写真を撮って】もいいですか。",en:"May I *take a photo*?",sw:[["ここに座って","sit here"],["窓を開けて","open the window"],["これをもらって","take this one"]]},
+{id:"KH04",t:"基本",ja:"【ちょっと待って】ください。",en:"Please *wait a moment*.",sw:[["ゆっくり話して","speak slowly"],["ここに書いて","write it here"],["手伝って","help me"]]},
+{id:"KH05",t:"基本",ja:"【荷物を持ち】ましょうか。",en:"Shall I *carry your luggage*?",sw:[["窓を開け","open the window"],["手伝い","help"],["タクシーを呼び","call a taxi"]]},
+{id:"KH06",t:"基本",ja:"【富士山に登った】ことがありますか。",en:"Have you ever *climbed Mt. Fuji*?",sw:[["新幹線に乗った","ridden the shinkansen"],["歌舞伎を見た","seen kabuki"],["沖縄へ行った","been to Okinawa"]]},
+{id:"KH07",t:"基本",ja:"【本を読む】のが好きです。",en:"I like *reading books*.",sw:[["写真を撮る","taking photos"],["古い建物を見る","looking at old buildings"],["料理を作る","cooking"]]},
+{id:"KH08",t:"基本",ja:"【昼ご飯を食べ】に行きます。",en:"I'm going *to eat lunch*.",sw:[["友達に会い","to meet a friend"],["切手を買い","to buy stamps"],["泳ぎ","to swim"]]},
+{id:"KH09",t:"基本",ja:"【ATMの使い】方を教えてください。",en:"Please teach me how *to use the ATM*.",sw:[["漢字の読み","to read the kanji"],["駅までの行き","to get to the station"],["切符の買い","to buy a ticket"]]},
+{id:"KH10",t:"基本",ja:"【一週間】休みます。",en:"I'll take *one week* off. (durations: no particle)",sw:[["二日","two days"],["二時間半ぐらい","about 2.5 hours"],["一か月","one month"]]},
+{id:"KH11",t:"基本",ja:"【会社】を休みます。",en:"I'll take the day off from *work*. (detachment を)",sw:[["学校","school"],["授業","class"],["仕事","my job"]]},
+{id:"KH12",t:"基本",ja:"【三時】に駅で会いましょう。",en:"Let's meet at the station at *three*.",sw:[["六時半","six thirty"],["午後二時","2 p.m."],["十時","ten"]]},
+{id:"KH13",t:"基本",ja:"【スポーツ】で何が一番好きですか。",en:"Among *sports*, what do you like best?",sw:[["季節","the seasons"],["日本料理","Japanese food"],["音楽","music"]]},
+{id:"KH14",t:"基本",ja:"昨日、【どこかへ行き】ましたか。",en:"Did you *go somewhere* yesterday? (yes/no shape)",sw:[["何か食べ","eat something"],["だれかに会い","meet someone"],["何か買い","buy something"]]},
+{id:"KH15",t:"基本",ja:"毎朝、【公園】を散歩します。",en:"I stroll through *the park* every morning. (path を)",sw:[["海岸","the seaside"],["川沿い","along the river"],["町","the town"]]},
+{id:"KH16",t:"基本",ja:"【旅行】に行きたいです。",en:"I want to go *on a trip*. (activity noun + に)",sw:[["買い物","shopping"],["花見","blossom viewing"],["温泉","to a hot spring"]]},
+/* ---- 基本・後半 (Minna I ch15-22 — the confusing stretch) ---- */
+{id:"KH17",t:"基本",ja:"【五時までに】戻ります。",en:"I'll be back *by five*. (までに = deadline; the event happens ONCE, anywhere before the line)",sw:[["明日までに","by tomorrow"],["月曜日までに","by Monday"],["昼までに","by noon"]]},
+{id:"KH18",t:"基本",ja:"【五時まで】働きます。",en:"I'll work *until five*. (まで = the action runs the WHOLE span — compare までに!)",sw:[["九時まで","until nine"],["夜まで","until night"],["金曜日まで","until Friday"]]},
+{id:"KH19",t:"基本",ja:"【明日までにレポートを出さ】なければなりません。",en:"I have to *turn in the report by tomorrow*. (lit. 'if I don't do it, it won't do' — the double negative that means MUST)",sw:[["六時に起き","get up at six"],["薬を飲ま","take the medicine"],["ビザを更新し","renew my visa"]]},
+{id:"KH20",t:"基本",ja:"【急が】なくてもいいですよ。",en:"You don't have to *hurry*. (the double negative's merciful cousin: 'even not-doing is fine')",sw:[["来","come"],["全部食べ","eat it all"],["心配し","worry"]]},
+{id:"KH21",t:"基本",ja:"【ここ】に自転車を置かないでください。",en:"Please don't leave your bicycle *here*. (Counterintuitive に: it marks where the bike would LAND — placement destination, even inside a don't!)",sw:[["入り口の前","in front of the entrance"],["店の前","in front of the shop"],["この辺","around here"]]},
+{id:"KH22",t:"基本",ja:"【机の上】に置いてください。",en:"Please put it *on the desk*. (に = the landing spot)",sw:[["冷蔵庫の中","in the fridge"],["玄関","at the entryway"],["棚","on the shelf"]]},
+{id:"KH23",t:"基本",ja:"昨日は【寝】ないで、勉強しました。",en:"Yesterday I studied without *sleeping*. (ないで = skip X, then do the main verb)",sw:[["食べ","eating"],["休ま","resting"],["遊ば","playing around"]]},
+{id:"KH24",t:"基本",ja:"【電気を消さ】ないでください。",en:"Please don't *turn off the lights*.",sw:[["窓を開け","open the window"],["それを捨て","throw that away"],["写真を撮ら","take photos"]]},
+{id:"KH25",t:"基本",ja:"朝起きて、【シャワーを浴びて】、会社へ行きます。",en:"I get up, *take a shower*, and go to work. (te-form chains the sequence)",sw:[["朝ご飯を食べて","eat breakfast"],["ジョギングをして","go jogging"],["ニュースを見て","watch the news"]]},
+{id:"KH26",t:"基本",ja:"【仕事が終わって】から、飲みに行きます。",en:"After *work ends*, we'll go drinking. (てから = strictly AFTER that's done — stronger than plain て)",sw:[["宿題をして","doing homework"],["シャワーを浴びて","showering"],["お金を入れて","putting the money in"]]},
+{id:"KH27",t:"基本",ja:"【日本語を話す】ことができます。",en:"I can *speak Japanese*. (dictionary form + ことができます)",sw:[["ピアノを弾く","play piano"],["車を運転する","drive a car"],["着物を着る","wear a kimono"]]},
+{id:"KH28",t:"基本",ja:"私の趣味は【音楽を聴く】ことです。",en:"My hobby is *listening to music*. (dictionary form + こと turns a verb into a thing)",sw:[["山に登る","climbing mountains"],["写真を撮る","taking photos"],["古い車を直す","fixing old cars"]]},
+{id:"KH29",t:"基本",ja:"【寝る】前に、歯を磨きます。",en:"Before *sleeping*, I brush my teeth. (ALWAYS dictionary form before 前に — even in past-tense stories!)",sw:[["食べる","eating"],["出かける","going out"],["会議の","the meeting (noun + の)"]]},
+{id:"KH30",t:"基本",ja:"【暖かく】なりましたね。",en:"It's gotten *warm*, hasn't it. (い-adjective drops い, takes く + なる)",sw:[["強く","strong"],["安く","cheap"],["眠く","sleepy"]]},
+{id:"KH31",t:"基本",ja:"【元気に】なりました。",en:"I got *better/well*. (な-adjective and noun take に + なる — even 二十歳に for birthdays!)",sw:[["きれいに","pretty"],["有名に","famous"],["二十歳に","twenty years old"]]},
+{id:"KH32",t:"基本",ja:"週末は【映画を見たり、料理をしたり】します。",en:"On weekends I do things like *watch movies and cook*. (たり…たり = a sampler, not the full list)",sw:[["掃除したり、洗濯したり","clean and do laundry"],["本を読んだり、寝たり","read and sleep"],["友達に会ったり、買い物したり","see friends and shop"]]},
+{id:"KH33",t:"基本",ja:"【いいえ、知りません】。",en:"*No, I don't know (him).* (The famous asymmetry: yes keeps 知っています, but the no drops ています completely!)",sw:[["はい、知っています","yes, I know him"],["よく知っています","I know him well"],["名前だけ知っています","I only know the name"]]},
+{id:"KH34",t:"基本",ja:"田中さんは【明日来る】と言っていました。",en:"Tanaka said he'll *come tomorrow*. (と言っていました reports someone's words — plain form inside)",sw:[["忙しい","he's busy"],["行けない","he can't go"],["もう帰った","he already went home"]]},
+{id:"KH35",t:"基本",ja:"これは【母が作った】弁当です。",en:"This is the bento *my mother made*. (the whole clause parks in front of the noun)",sw:[["京都で買った","I bought in Kyoto"],["昨日買った","I bought yesterday"],["友達にもらった","I got from a friend"]]},
+/* ---- 問答 (Q←A: the answer is given — produce the question that fits) ---- */
+{id:"QA01",t:"問答",ja:"【どうしましたか】。熱があるんです。",en:"Their answer: 'I have a fever, you see.' Ask the question that fits: *what's wrong?*",sw:[["どうかしましたか","is something the matter?"],["大丈夫ですか","are you okay?"],["どうしたんですか","what happened?"]]},
+{id:"QA02",t:"問答",ja:"【もう昼ご飯を食べました】か。いいえ、まだです。",en:"Their answer: 'No, not yet.' ANY already-question fits まだです. Ask: *have you already eaten lunch?*",sw:[["もうレポートを出しました","already turned in the report"],["もう薬を飲みました","already taken the medicine"],["もうホテルを予約しました","already booked the hotel"]]},
+{id:"QA03",t:"問答",ja:"【どうやって行きます】か。電車で行きます。",en:"Their answer: 'I'll go by train.' Ask: *how will you go?*",sw:[["何で行きます","by what means will you go"],["駅までどうやって行きます","how do you get to the station"],["会場までどうやって行きます","how do you get to the venue"]]},
+{id:"QA04",t:"問答",ja:"【旅行はどうでした】か。とても楽しかったです。",en:"Their answer: 'It was really fun.' Ask: *how was the trip?*",sw:[["週末はどうでした","how was the weekend"],["パーティーはどうでした","how was the party"],["京都はどうでした","how was Kyoto"]]},
+{id:"QA05",t:"問答",ja:"【どうして遅れたんです】か。電車が止まったんです。",en:"Their answer: 'The trains stopped, you see.' The んです in the answer wants an んです question: *why were you late?*",sw:[["何かあったんです","did something happen"],["どうしたんです","what happened"],["どうして遅くなったんです","why did you end up late"]]},
+{id:"QA06",t:"問答",ja:"【お仕事は何です】か。銀行で働いています。",en:"Their answer: 'I work at a bank.' Ask: *what's your job?*",sw:[["何のお仕事をしています","what work do you do"],["どんな仕事をしています","what kind of work do you do"],["お仕事は","your work is…? (trail-off)"]]},
+{id:"QA07",t:"問答",ja:"【何人家族です】か。四人家族です。",en:"Their answer: 'We're a family of four.' Ask: *how many in your family?*",sw:[["ご家族は何人です","how many is your family (polite)"],["家族は何人います","how many people are in your family"],["全部で何人です","how many in all"]]},
+{id:"QA08",t:"問答",ja:"【駅までどのくらいかかります】か。歩いて十分ぐらいです。",en:"Their answer: 'About ten minutes on foot.' Ask: *how long does it take to the station?*",sw:[["家から駅までどのくらいです","how far from home to the station"],["駅まで何分ぐらいかかります","about how many minutes to the station"],["歩いてどのくらいです","how long on foot"]]},
+{id:"QA09",t:"問答",ja:"【ご注文はお決まりです】か。コーヒーをお願いします。",en:"Their answer: 'Coffee, please.' Ask like the staff: *have you decided on your order?*",sw:[["何になさいます","what will you have (honorific)"],["お飲み物はいかがです","how about a drink"],["ご注文は","your order…? (trail-off)"]]},
+/* ---- 初級II (Minna II) ---- */
+{id:"S201",t:"初級II",ja:"【電車にかばんを忘れて】しまったんですが。",en:"I *left my bag on the train*, you see…",sw:[["財布をなくして","lost my wallet"],["道に迷って","got lost"],["切符を落として","dropped my ticket"]]},
+{id:"S202",t:"初級II",ja:"【調べて】もらえますか。",en:"Could you *check* for me?",sw:[["もう一度言って","say it once more"],["写真を撮って","take a photo"],["少し待って","wait a little"]]},
+{id:"S203",t:"初級II",ja:"【カードで払え】ますか。",en:"Can I *pay by card*? (potential)",sw:[["このチケットで入れ","enter with this ticket"],["今夜予約でき","reserve for tonight"],["ここに車を止められ","park here"]]},
+{id:"S204",t:"初級II",ja:"【引っ越そう】と思っています。",en:"I'm thinking of *moving*.",sw:[["車を買おう","buying a car"],["留学しよう","studying abroad"],["仕事を変えよう","changing jobs"]]},
+{id:"S205",t:"初級II",ja:"【雨が降る】かもしれません。",en:"*It might rain*.",sw:[["彼は来ない","he might not come"],["終電はもうない","the last train may be gone"],["少し遅れる","I might be a bit late"]]},
+{id:"S206",t:"初級II",ja:"【早く帰った】ほうがいいですよ。",en:"You'd better *go home early*.",sw:[["病院へ行った","see a doctor"],["予約した","make a reservation"],["休んだ","rest"]]},
+{id:"S207",t:"初級II",ja:"【急げ】ば、間に合いますよ。",en:"If you *hurry*, you'll make it.",sw:[["走れ","run"],["今出れ","leave now"],["タクシーで行け","go by taxi"]]},
+{id:"S208",t:"初級II",ja:"【予約して】おきます。",en:"I'll *reserve it* in advance.",sw:[["買って","buy it"],["調べて","look it up"],["冷やして","chill it"]]},
+{id:"S209",t:"初級II",ja:"切符はもう【買って】あります。",en:"The tickets are already *bought*. (done state)",sw:[["予約して","reserved"],["準備して","prepared"],["書いて","written"]]},
+{id:"S210",t:"初級II",ja:"「立入禁止」は【入るな】という意味です。",en:"The sign means '*don't enter*.'",sw:[["触るな","don't touch"],["吸うな","don't smoke"],["止まれ","stop"]]},
+{id:"S211",t:"初級II",ja:"【漢字が読める】ようになりました。",en:"I've become able *to read kanji*.",sw:[["納豆が食べられる","to eat natto"],["日本語で電話できる","to phone in Japanese"],["朝早く起きられる","to get up early"]]},
+{id:"S212",t:"初級II",ja:"【忘れない】ように、メモしています。",en:"I take notes so that I *don't forget*.",sw:[["遅れない","won't be late"],["間違えない","won't make mistakes"],["太らない","won't gain weight"]]},
+{id:"S213",t:"初級II",ja:"【財布を盗まれ】ました。",en:"I had *my wallet stolen*. (passive)",sw:[["足を踏まれ","my foot stepped on"],["雨に降られ","rained on"],["先生に褒められ","praised by the teacher"]]},
+{id:"S214",t:"初級II",ja:"【朝早く起きる】のは大変です。",en:"*Getting up early* is tough. (nominalizer)",sw:[["毎日自炊する","cooking every day"],["満員電車に乗る","riding packed trains"],["敬語を使う","using keigo"]]},
+{id:"S215",t:"初級II",ja:"【道が込んでいた】ので、遅れました。",en:"Since *the roads were jammed*, I was late.",sw:[["事故があった","there was an accident"],["電車が止まった","the trains stopped"],["体調が悪かった","I felt unwell"]]},
+{id:"S216",t:"初級II",ja:"彼が【来る】かどうか、わかりません。",en:"I don't know whether he'll *come* or not.",sw:[["間に合う","make it in time"],["本当","it's true (ほんとうかどうか)"],["正しい","it's correct"]]},
+{id:"S217",t:"初級II",ja:"【電話してみ】ます。",en:"I'll try *calling*.",sw:[["食べてみ","eating it"],["着てみ","trying it on"],["聞いてみ","asking"]]},
+{id:"S218",t:"初級II",ja:"このお茶は【部長】にいただきました。",en:"I received this tea from *the department head*. (humble)",sw:[["先生","my teacher"],["課長","the section chief"],["お客様","a customer"]]},
+{id:"S219",t:"初級II",ja:"【留学する】ために、お金をためています。",en:"I'm saving money in order *to study abroad*.",sw:[["家を買う","to buy a house"],["旅行に行く","to travel"],["新しいギターを買う","to buy a new guitar"]]},
+{id:"S220",t:"初級II",ja:"【日本で働く】のに、ビザが必要です。",en:"You need a visa *to work in Japan*. (utility のに)",sw:[["口座を作る","to open an account"],["部屋を借りる","to rent a room"],["免許を取る","to get a license"]]},
+{id:"S221",t:"初級II",ja:"【おいし】そうですね。",en:"It looks *delicious*.",sw:[["重","heavy"],["難し","difficult"],["楽し","fun"]]},
+{id:"S222",t:"初級II",ja:"【食べ】すぎました。",en:"I *ate* too much.",sw:[["飲み","drank"],["働き","worked"],["買い","bought"]]},
+{id:"S223",t:"初級II",ja:"【この薬は飲み】やすいです。",en:"*This medicine* is easy *to take*.",sw:[["この本は読み","this book / to read"],["この靴は歩き","these shoes / to walk in"],["この町は住み","this town / to live in"]]},
+{id:"S224",t:"初級II",ja:"【遅れる】場合は、連絡してください。",en:"In case you'll *be late*, please contact me.",sw:[["休む","be absent"],["行けない","can't go"],["変更する","change it"]]},
+{id:"S225",t:"初級II",ja:"【作った】ばかりなのに。",en:"Even though I just *made* it…",sw:[["買った","bought"],["始めた","started"],["充電した","charged"]]},
+{id:"S226",t:"初級II",ja:"もう【着いている】はずです。",en:"It should already *have arrived*.",sw:[["開いている","be open"],["終わっている","be finished"],["届いている","have been delivered"]]},
+{id:"S227",t:"初級II",ja:"【雪が降る】そうです。",en:"I hear *it will snow*. (hearsay)",sw:[["結婚する","they're getting married"],["閉店する","the shop is closing"],["電気代が上がる","electricity is going up"]]},
+{id:"S228",t:"初級II",ja:"電車は【止まっている】ようです。",en:"It seems the trains *have stopped*. (inference)",sw:[["遅れている","are delayed"],["込んでいる","are crowded"],["動いている","are running"]]},
+{id:"S229",t:"初級II",ja:"毎日、息子に【宿題をさせ】ています。",en:"Every day I make my son *do his homework*. (causative)",sw:[["野菜を食べさせ","eat vegetables"],["ピアノを練習させ","practice piano"],["部屋を掃除させ","clean his room"]]},
+{id:"S230",t:"初級II",ja:"【考えさせて】ください。",en:"Please let me *think it over*.",sw:[["やらせて","do it"],["行かせて","go"],["少し休ませて","rest a little"]]},
+{id:"S231",t:"初級II",ja:"もう【ご覧になり】ましたか。",en:"Have you already *seen it*? (honorific)",sw:[["召し上がり","eaten"],["お戻りになり","returned"],["お聞きになり","heard"]]},
+{id:"S232",t:"初級II",ja:"【二時】にそちらに参ります。",en:"I will come to you at *two*. (humble)",sw:[["三時半","three thirty"],["午後","the afternoon"],["明日の朝","tomorrow morning"]]},
+{id:"S233",t:"初級II",ja:"【田中】と申します。",en:"My name is *Tanaka*. (humble)",sw:[["山田","Yamada"],["スミス","Smith"],["ジョン","John"]]},
+/* ---- 中級 (Chuukyuu) ---- */
+{id:"CH01",t:"中級",ja:"【行かない】わけにはいきません。",en:"I can't very well *not go*.",sw:[["断る","refuse"],["勉強しない","not study"],["返さない","not pay it back"]]},
+{id:"CH02",t:"中級",ja:"今、【ご飯を作っている】ところです。",en:"I'm right in the middle of *making dinner*.",sw:[["出かける","about to leave"],["レポートを書いている","writing the report"],["駅に着いた","just arrived at the station"]]},
+{id:"CH03",t:"中級",ja:"【明るい】うちに帰りましょう。",en:"Let's head home while it's still *light*.",sw:[["若い","young (travel while…)"],["覚えている","fresh in memory"],["雨が降らない","before it rains"]]},
+{id:"CH04",t:"中級",ja:"【毎朝走る】ことにしました。",en:"I've decided *to run every morning*. (my choice)",sw:[["お酒をやめる","to quit drinking"],["日本語で日記を書く","to journal in Japanese"],["外食しない","not to eat out"]]},
+{id:"CH05",t:"中級",ja:"【大阪に転勤する】ことになりました。",en:"It's been decided that I'll *transfer to Osaka*.",sw:[["結婚する","get married"],["来月帰国する","return home next month"],["東京で働く","work in Tokyo"]]},
+{id:"CH06",t:"中級",ja:"【二時間も待たされ】ました。",en:"I was made *to wait two whole hours*.",sw:[["三曲も歌わされ","to sing three songs"],["高い教科書を買わされ","to buy a pricey textbook"],["一時間残業させられ","to do an hour's overtime"]]},
+{id:"CH07",t:"中級",ja:"【先生】のおかげで、合格できました。",en:"Thanks to *my teacher*, I passed.",sw:[["友達","my friend"],["このアプリ","this app"],["毎日の練習","daily practice"]]},
+{id:"CH08",t:"中級",ja:"【雨】のせいで、中止になりました。",en:"Because of *the rain*, it was called off.",sw:[["台風","the typhoon"],["事故","an accident"],["騒音","the noise"]]},
+{id:"CH09",t:"中級",ja:"【練習すればする】ほど、上手になります。",en:"The more you *practice*, the better you get.",sw:[["聞けば聞く","listen"],["知れば知る","learn about it"],["考えれば考える","think about it"]]},
+{id:"CH10",t:"中級",ja:"【子供】にとって、遊びは勉強です。",en:"For *children*, play is study.",sw:[["私","me"],["外国人","foreigners"],["初心者","beginners"]]},
+{id:"CH11",t:"中級",ja:"【環境】についてレポートを書きました。",en:"I wrote a report about *the environment*.",sw:[["日本の歴史","Japanese history"],["この町","this town"],["音楽","music"]]},
+{id:"CH12",t:"中級",ja:"【疲れ】気味です。",en:"I'm feeling a touch *run-down*.",sw:[["風邪","of a cold"],["寝不足","sleep-deprived"],["太り","like I'm gaining weight"]]},
+{id:"CH13",t:"中級",ja:"【嫌いな】わけではありません。",en:"It's not that I *dislike it*.",sw:[["興味がない","have no interest"],["怒っている","am angry"],["行きたくない","don't want to go"]]},
+{id:"CH14",t:"中級",ja:"【彼が知っている】わけがない。",en:"There's no way *he knows*.",sw:[["そんなに安い","it's that cheap"],["間に合う","we'll make it"],["彼女が忘れる","she'd forget"]]},
+{id:"CH15",t:"中級",ja:"【うそ】に決まってるよ。",en:"It's *a lie*, obviously.",sw:[["冗談","a joke"],["だめ","no good"],["無理","impossible"]]},
+{id:"CH16",t:"中級",ja:"【彼は家にいる】に違いない。",en:"*He* must *be home*. (deduction)",sw:[["電車の中にいる","be on the train"],["寝ている","be asleep"],["忘れている","have forgotten"]]},
+{id:"CH17",t:"中級",ja:"今夜は【大雨】のおそれがあります。",en:"There is a risk of *heavy rain* tonight. (formal)",sw:[["台風","a typhoon"],["停電","a blackout"],["遅れ","delays"]]},
+{id:"CH18",t:"中級",ja:"買い物のついでに、【本屋】に寄りました。",en:"While shopping, I stopped by *the bookstore*.",sw:[["薬局","the pharmacy"],["郵便局","the post office"],["カフェ","a cafe"]]},
+{id:"CH19",t:"中級",ja:"【店】によって、値段が違います。",en:"Prices differ depending on *the store*.",sw:[["季節","the season"],["国","the country"],["人","the person"]]},
+{id:"CH20",t:"中級",ja:"【経験】に応じて、決められます。",en:"It's decided according to *experience*.",sw:[["レベル","level"],["予算","budget"],["目的","purpose"]]},
+{id:"CH21",t:"中級",ja:"【データ】に基づいて、決めます。",en:"We'll decide based on *the data*.",sw:[["事実","the facts"],["結果","the results"],["調査","the survey"]]},
+{id:"CH22",t:"中級",ja:"【寒い】どころか、暑いくらいです。",en:"*Cold*? Far from it — it's practically hot.",sw:[["静か","quiet"],["暇","free"],["簡単","easy"]]},
+{id:"CH23",t:"中級",ja:"忙しくて、【パーティー】どころではありません。",en:"I'm too busy — it's no time for *a party*.",sw:[["旅行","a trip"],["ゲーム","games"],["正月","New Year's"]]},
+{id:"CH24",t:"中級",ja:"【やると言った】ものの、少し後悔しています。",en:"Although I *said I'd do it*, I'm regretting it a bit.",sw:[["引き受けた","took it on"],["約束した","promised"],["始めた","started"]]},
+{id:"CH25",t:"中級",ja:"【医者に行く】べきですよ。",en:"You should *see a doctor*.",sw:[["謝る","apologize"],["早く寝る","sleep early"],["一度見る","see it once"]]},
+{id:"CH26",t:"中級",ja:"【直し】ようがありません。",en:"There's no way *to fix* it.",sw:[["連絡し","to make contact"],["答え","to answer"],["説明し","to explain"]]},
+{id:"CH27",t:"中級",ja:"【お答えいたしかねます】。",en:"*I am unable to answer that.* (business decline)",sw:[["お受けいたしかねます","unable to accept"],["わかりかねます","unable to ascertain"],["確認いたしかねます","unable to confirm"]]},
+{id:"CH28",t:"中級",ja:"イベントを【中止せ】ざるを得ません。",en:"We have no choice but to *cancel* the event. (N1)",sw:[["延期せ","postpone"],["変更せ","change"],["あきらめ","give up on"]]},
+{id:"CH29",t:"中級",ja:"無理を続けると、【体を壊し】かねませんよ。",en:"If you keep pushing, you could well *wreck your health*. (N1)",sw:[["事故を起こし","cause an accident"],["失敗し","fail"],["倒れ","collapse"]]},
+/* ---- 会話 ---- */
+{id:"KW01",t:"会話",ja:"ねえ、【明日】ひま？",en:"Hey, are you free *tomorrow*?",sw:[["今夜","tonight"],["週末","this weekend"],["金曜日","Friday"]]},
+{id:"KW02",t:"会話",ja:"【一緒に行か】ない？",en:"Wanna *go together*?",sw:[["飲みに行か","go for drinks"],["やってみ","give it a try"],["ちょっと休ま","take a break"]]},
+{id:"KW03",t:"会話",ja:"【辞める】らしいよ。",en:"Apparently he's *quitting*.",sw:[["結婚する","getting married"],["引っ越す","moving"],["バンドを組む","starting a band"]]},
+{id:"KW04",t:"会話",ja:"【田中さん】っぽいよね。",en:"That's so *Tanaka*, right?",sw:[["君","you"],["先生","the teacher"],["あの人","that guy"]]},
+{id:"KW05",t:"会話",ja:"【ネタバレしない】でね。",en:"Don't *spoil it*, okay?",sw:[["無理しない","push yourself"],["忘れない","forget"],["遅れない","be late"]]},
+{id:"KW06",t:"会話",ja:"【まじで】？",en:"*Seriously*?! (sibling reactions)",sw:[["うそでしょ","no way"],["ほんとに","really?"],["えっ","huh?!"]]},
+{id:"KW07",t:"会話",ja:"【それな】。",en:"*Right?!* — hard agreement (siblings)",sw:[["たしかに","true, fair"],["わかる","I get it"],["だよね","right, yeah"]]},
+{id:"KW08",t:"会話",ja:"最近、【ゲーム】にハマってる。",en:"Lately I'm hooked on *games*.",sw:[["韓国ドラマ","K-dramas"],["ラーメン屋巡り","ramen-shop hopping"],["このバンド","this band"]]},
+{id:"KW09",t:"会話",ja:"【会社辞める】んだって。",en:"He says he's *quitting the company*. (reporting)",sw:[["結婚する","getting married"],["引っ越す","moving"],["宝くじが当たった","won the lottery"]]},
+{id:"KW10",t:"会話",ja:"【すごい】じゃん。",en:"That's *awesome*! (…jan)",sw:[["いい","nice"],["かわいい","cute"],["うまい","good/skilled"]]},
+/* ---- 役所 ---- */
+{id:"GV01",t:"役所",ja:"【住民票の写し】が欲しいんですが。",en:"I'd like *a copy of my residence certificate*…",sw:[["課税証明書","a tax certificate"],["申請書","an application form"],["この書類のコピー","a copy of this document"]]},
+{id:"GV02",t:"役所",ja:"【本籍入り】で、マイナンバーはなしでお願いします。",en:"*With registered domicile*, and without My Number, please.",sw:[["世帯全員","for the whole household"],["私だけ","for just me"],["二通","two copies"]]},
+{id:"GV03",t:"役所",ja:"次は【何番の窓口】ですか。",en:"*Which window* is next?",sw:[["何階","which floor"],["どこ","where"],["何時から","from what time"]]},
+{id:"GV04",t:"役所",ja:"【外国の免許を日本の免許に切り替え】たいんですが。",en:"I'd like *to switch my foreign license to a Japanese one*…",sw:[["住所を変更し","to change my address"],["口座を作り","to open an account"],["予約し","to make an appointment"]]},
+{id:"GV05",t:"役所",ja:"番号札を取って、【呼ばれる】までお待ちください。",en:"Take a ticket and wait until *you're called*.",sw:[["できあがる","it's ready"],["名前を呼ばれる","your name is called"],["順番が来る","your turn comes"]]},
+/* ---- 決まり文句 (true set phrases) ---- */
+{id:"SP01",t:"決まり文句",ja:"【よろしくお願いします】。",en:"*Please treat me well / thanks in advance.* (siblings)",sw:[["どうぞよろしくお願いします","polite fuller version"],["今後ともよろしくお願いします","…going forward (business)"],["引き続きよろしくお願いします","…continuing (mid-project)"]]},
+{id:"SP02",t:"決まり文句",ja:"【お世話になっております】。",en:"*Thank you for your continued support.* (business opener)",sw:[["いつもお世話になっております","always-version"],["大変お世話になりました","past, deep thanks"],["お世話になります","first contact"]]},
+{id:"SP03",t:"決まり文句",ja:"【お疲れさまです】。",en:"*Good work / hey (workplace greeting).* (siblings)",sw:[["お疲れさまでした","to someone finishing"],["お先に失礼します","excuse me for leaving first"],["おはようございます","morning version"]]},
+{id:"SP04",t:"決まり文句",ja:"とりあえず【ビール】で。",en:"To start, *beer*, please. (izakaya classic)",sw:[["生","a draft"],["お水","water"],["ウーロン茶","oolong tea"]]},
+{id:"SP05",t:"決まり文句",ja:"【いただきます】。",en:"*Said before eating.* (siblings)",sw:[["ごちそうさまでした","after eating"],["お先にどうぞ","after you"],["遠慮なくいただきます","don't mind if I do"]]},
+{id:"SP06",t:"決まり文句",ja:"【助かります】。",en:"*That helps so much.* (siblings)",sw:[["助かりました","past: you saved me"],["ありがたいです","I'm grateful"],["恐れ入ります","much obliged (formal)"]]},
+{id:"SP07",t:"決まり文句",ja:"【少々お待ちください】。",en:"*One moment, please.* (siblings)",sw:[["お待たせしました","sorry to keep you waiting"],["ただいま参ります","coming right away"],["のちほどご連絡します","I'll contact you later"]]},
+{id:"SP08",t:"決まり文句",ja:"【かしこまりました】。",en:"*Certainly / understood.* (service register siblings)",sw:[["承知しました","understood (business)"],["了解です","got it (casual-ish)"],["わかりました","plain understood"]]},
+{id:"SP09",t:"決まり文句",ja:"【お大事に】。",en:"*Take care / get well.* (siblings)",sw:[["お気をつけて","safe travels"],["ご自愛ください","take care of yourself (formal, written)"],["無理しないでね","don't overdo it (warm)"]]},
+{id:"SP10",t:"決まり文句",ja:"【行ってきます】。",en:"*I'm off!* (household siblings)",sw:[["行ってらっしゃい","see you, take care (reply)"],["ただいま","I'm home"],["おかえりなさい","welcome back (reply)"]]},
+{id:"SP11",t:"決まり文句",ja:"【久しぶり】！",en:"*Long time no see!* (siblings)",sw:[["お久しぶりです","polite version"],["元気だった？","you been well?"],["相変わらずだね","same as ever, huh"]]},
+{id:"SP12",t:"決まり文句",ja:"ちょっと【いいですか】？",en:"Got *a second*? (interruption openers)",sw:[["お時間よろしいですか","do you have a moment (polite)"],["聞きたいんですけど","I wanted to ask…"],["相談があるんですが","I have something to discuss…"]]},
+{id:"SP13",t:"決まり文句",ja:"【とんでもないです】。",en:"*Not at all / don't mention it.* (deflecting praise)",sw:[["いえいえ","no no"],["こちらこそ","likewise — the thanks is mine"],["恐縮です","I'm humbled (formal)"]]},
+{id:"SP14",t:"決まり文句",ja:"【なるほど】。",en:"*I see / that makes sense.* (listening siblings)",sw:[["そうなんですね","oh, is that so"],["たしかに","fair point"],["そういうことか","ah, so that's it"]]},
+{id:"SP15",t:"決まり文句",ja:"【お手数ですが】、お願いします。",en:"*Sorry for the trouble, but* — please. (request softener)",sw:[["恐れ入りますが","terribly sorry but (formal)"],["すみませんが","sorry but (standard)"],["もしよければ","if it's alright"]]},
+];
+/* ===================== END DECK ====================================
+   ===================================================================== */
+
+/* ================= STORAGE (keyed by id — update-safe) ============== */
+let canStore=true;
+function load(){try{const r=localStorage.getItem("bunkei_v2");return r?JSON.parse(r):{}}catch(e){canStore=false;return{}}}
+function save(){try{localStorage.setItem("bunkei_v2",JSON.stringify(S))}catch(e){canStore=false}}
+let S=load();
+S.cards=S.cards||{}; S.cfg=S.cfg||{}; if(typeof S.cfg.newPerDay!=="number")S.cfg.newPerDay=3; S.day=S.day||""; S.newToday=S.newToday||0;
+const today=new Date().toISOString().slice(0,10);
+if(S.day!==today){S.day=today;S.newToday=0;save();}
+
+/* ================= SRS ================= */
+const now=()=>Date.now();
+const byId=id=>DECK.find(c=>c.id===id);
+function stateOf(id){return S.cards[id]||null}
+function dueIds(){return DECK.filter(c=>{const st=stateOf(c.id);return st&&st.due<=now()}).map(c=>c.id)}
+function newIds(){return DECK.filter(c=>!stateOf(c.id)).map(c=>c.id)}
+function grade(id,g){
+  let st=stateOf(id)||{iv:0,e:2.3,r:0};
+  if(!stateOf(id)&&g!=4){S.newToday++;}
+  st.r++;
+  if(g==4){st.iv=60;st.e=Math.max(st.e,2.8);st.due=now()+60*864e5;S.cards[id]=st;save();return;}
+  if(g==0){st.iv=0;st.e=Math.max(1.6,st.e-0.2);st.due=now()+60*1000;}
+  else if(g==1){st.iv=Math.max(1,st.iv*1.2);st.due=now()+st.iv*864e5;}
+  else if(g==2){st.iv=st.iv==0?1:st.iv*st.e;st.due=now()+st.iv*864e5;}
+  else{st.iv=(st.iv==0?2:st.iv*st.e*1.4);st.e+=0.1;st.due=now()+st.iv*864e5;}
+  S.cards[id]=st;save();
+}
+
+/* ================ ROBUST TTS (iOS-safe) ================
+   iOS quirks handled: engine wedging after rate changes or cancels,
+   onend never firing, second queued utterance dropped, audio needing
+   a user-gesture unlock. Strategy: unlock on first tap, cancel before
+   every utterance, kick resume() on an interval, and resolve via a
+   length-based watchdog so the app never depends on onend. */
+let JV=null,EV=null,JV_LOCAL=null,currentU=null,unlocked=false,speakToken=0,noJa=false,voicesSettled=false;
+function allVoices(){try{return speechSynthesis.getVoices()||[]}catch(e){return[]}}
+function pickVoices(){const vs=allVoices();
+  const isJa=v=>v.lang.replace("_","-").startsWith("ja");
+  JV=(S.cfg.jvURI&&vs.find(v=>v.voiceURI===S.cfg.jvURI))
+     ||vs.find(v=>/Google/i.test(v.name)&&isJa(v))
+     ||vs.find(v=>/Kyoko/i.test(v.name)&&isJa(v))
+     ||vs.find(isJa)||null;
+  JV_LOCAL=vs.find(v=>isJa(v)&&v.localService)||null;
+  EV=(S.cfg.evURI&&vs.find(v=>v.voiceURI===S.cfg.evURI))
+     ||vs.find(v=>/Google/i.test(v.name)&&v.lang.startsWith("en"))
+     ||vs.find(v=>/Samantha|Jenny|Aria|Zira/i.test(v.name)&&v.lang.startsWith("en"))
+     ||vs.find(v=>v.lang.startsWith("en"))||null;
+  noJa=vs.length>0&&!JV;}
+async function ensureVoices(){
+  for(let i=0;i<20;i++){if(allVoices().length){break}await new Promise(r=>setTimeout(r,120));}
+  pickVoices();voicesSettled=true;}
+if(typeof speechSynthesis!=="undefined"){speechSynthesis.onvoiceschanged=()=>{pickVoices();};pickVoices();
+  ensureVoices().then(()=>{if(noJa&&$("#main")&&!$("#ja-warn"))$("#main").insertAdjacentHTML("afterbegin",jaWarnHTML());});}
+function jaWarnHTML(){return `<div class="note" id="ja-warn" style="border-color:var(--akane);color:var(--thread)">
+  ⚠ <b>No Japanese voice found in this browser</b> — Japanese audio will be silent until one is installed.<br>
+  ・<b>iPhone/iPad:</b> Settings → Accessibility → Spoken Content → Voices → Japanese → download <b>Kyoko</b><br>
+  ・<b>Windows:</b> Settings → Time &amp; Language → Language → add 日本語 (with Speech) — or use <b>Edge/Chrome</b>, which include one<br>
+  ・<b>Android:</b> Settings → Google Text-to-speech → install Japanese<br>
+  ・<b>Mac:</b> System Settings → Accessibility → Spoken Content → System voice → Manage voices → Japanese<br>
+  Then reload, and check 設定 → 音声設定 to pick and test the voice.</div>`}
+function unlock(){if(unlocked)return;unlocked=true;
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance("あ");u.volume=0;u.rate=1;speechSynthesis.speak(u);}catch(e){}}
+document.addEventListener("touchstart",unlock,{once:true});
+document.addEventListener("click",unlock,{once:true});
+function speak(text,jp=true,rate=0.92,_retry=false){
+  const myToken=++speakToken;
+  return new Promise(async res=>{
+    try{
+      if(!voicesSettled)await ensureVoices();
+      const busy=speechSynthesis.speaking||speechSynthesis.pending;
+      if(busy)speechSynthesis.cancel();
+      setTimeout(()=>{
+        if(myToken!==speakToken)return res();
+        pickVoices();
+        const u=new SpeechSynthesisUtterance(text);
+        currentU=u;                                    // guard against Chrome GC-silence bug
+        u.lang=jp?"ja-JP":"en-US";
+        let v=jp?JV:EV, r=jp?rate:1.0;
+        if(_retry){r=1.0;
+          if(jp){const alt=allVoices().find(x=>x.lang.replace("_","-").startsWith("ja")&&v&&x.localService!==v.localService);
+                 if(alt)v=alt;}}                       // fallback: try the other voice type
+        if(v)u.voice=v;
+        u.rate=Math.max(0.7,r); u.pitch=1;
+        let done=false,started=false;
+        const finish=()=>{if(done)return;done=true;clearInterval(kick);res();};
+        u.onstart=()=>{started=true};
+        u.onend=finish; u.onerror=finish;
+        const est=600+text.length*(jp?185:75)/u.rate;
+        setTimeout(finish,est+1500);                   // never hang
+        setTimeout(()=>{                               // engine silently dropped it → retry once, safe mode
+          if(!started&&!done&&!_retry){done=true;clearInterval(kick);
+            try{speechSynthesis.cancel()}catch(e){}
+            setTimeout(()=>speak(text,jp,1.0,true).then(res),160);}
+        },1400);
+        const kick=setInterval(()=>{try{speechSynthesis.resume()}catch(e){}},2500);
+        speechSynthesis.speak(u);
+        setTimeout(()=>{try{speechSynthesis.resume()}catch(e){}},120);
+      },busy?230:40);
+    }catch(e){res();}
+  });
+}
+const plain=ja=>ja.replace(/[【】]/g,"");
+function withSwap(ja,sw){return ja.replace(/【.*?】/,"【"+sw+"】")}
+
+/* ================= UI helpers ================= */
+const $=s=>document.querySelector(s);
+function slotHTML(ja){return ja.replace(/【(.*?)】/,'<span class="slot">$1</span>')}
+function enHTML(en){return en.replace(/\*(.*?)\*/,'<b>$1</b>')}
+function setTab(t){["rev","drill","browse","set"].forEach(x=>$("#tab-"+x).classList.toggle("on",x==t));
+  drilling=false; try{speechSynthesis.cancel()}catch(e){}
+  if(t=="rev")renderReview(); if(t=="drill")renderDrill(); if(t=="browse")renderBrowse(); if(t=="set")renderSettings();}
+$("#tab-rev").onclick=()=>setTab("rev");$("#tab-drill").onclick=()=>setTab("drill");$("#tab-browse").onclick=()=>setTab("browse");$("#tab-set").onclick=()=>setTab("set");
+function pill(){const d=dueIds().length,nleft=Math.max(0,S.cfg.newPerDay-S.newToday);
+  $("#due-pill").textContent=`復習 ${d} ・ 新規 ${Math.min(nleft,newIds().length)}`;}
+
+/* ================= REVIEW ================= */
+let q=[],qi=0;
+function buildQueue(){q=dueIds();const nleft=Math.max(0,S.cfg.newPerDay-S.newToday);
+  q=q.concat(newIds().slice(0,nleft));qi=0;}
+function renderReview(){pill();buildQueue();const m=$("#main");
+  if(!q.length){m.innerHTML=backupNote()+`<div class="done">今日の糸は<br>すべて結びました。<small>All threads tied for today. Come back tomorrow —<br>or run a hands-free session in 型ドリル.</small></div>${storeNote()}`;return;}
+  showCard();}
+function showCard(){pill();const m=$("#main");
+  if(qi>=q.length){renderReview();return;}
+  const id=q[qi],c=byId(id);
+  if(!c){qi++;showCard();return;}
+  m.innerHTML=backupNote()+`
+  <p class="hint">Say it out loud in Japanese — then reveal.</p>
+  <div class="pcard veil" id="pc">
+    <span class="tag">${c.t}</span>
+    <button class="know-btn" id="b-know" title="Rarely show this — I already know it">🌳 知ってる</button>
+    <div class="en" id="earea">${enHTML(c.en)}</div>
+    <div class="ja" id="jarea">${slotHTML(c.ja)}</div>
+    <div class="audio-row"><button id="b-play">▶ 聞く</button><button id="b-slow">🐢 ゆっくり</button></div>
+    <div class="swaps" id="swz"><span class="lab">RE-THREAD THE SLOT</span>
+      ${c.sw.map((s,k)=>`<button class="chip" data-k="${k}">${s[0]}</button>`).join("")}
+      <button class="chip onchip" data-k="-1">元に戻す</button></div>
+    <button class="reveal-btn" id="b-rev">答えを見る</button>
+  </div>
+  <div class="grades" id="gr" style="display:none">
+    <button class="g-again">もう一回<span class="gsub">&lt;1m</span></button>
+    <button class="g-hard">微妙<span class="gsub">hard</span></button>
+    <button class="g-good">できた<span class="gsub">good</span></button>
+    <button class="g-easy">余裕<span class="gsub">easy</span></button>
+  </div>${storeNote()}`;
+  let cur=c.ja;
+  $("#b-rev").onclick=()=>{$("#pc").classList.remove("veil");$("#b-rev").style.display="none";$("#gr").style.display="flex";speak(plain(cur));};
+  $("#b-play").onclick=()=>speak(plain(cur));
+  $("#b-slow").onclick=()=>speak(plain(cur),true,0.72);
+  document.querySelectorAll("#swz .chip").forEach(ch=>ch.onclick=()=>{
+    const k=+ch.dataset.k;cur=k<0?c.ja:withSwap(c.ja,c.sw[k][0]);
+    const enCur=k<0?c.en:c.en.replace(/\*.*?\*/,"*"+c.sw[k][1]+"*");
+    $("#jarea").innerHTML=slotHTML(cur);$("#earea").innerHTML=enHTML(enCur);speak(plain(cur));});
+  $("#b-know").onclick=()=>{grade(id,4);qi++;showCard();};
+  const gr=$("#gr");
+  gr.children[0].onclick=()=>{grade(id,0);q.push(id);qi++;showCard();};
+  gr.children[1].onclick=()=>{grade(id,1);qi++;showCard();};
+  gr.children[2].onclick=()=>{grade(id,2);qi++;showCard();};
+  gr.children[3].onclick=()=>{grade(id,3);qi++;showCard();};
+}
+
+/* ============ DRILL (hands-free, weighted by SRS maturity) ============
+   srs mode: only threads you've started in 今日の復習 enter the drill.
+   Young threads (short intervals) are sampled often and get the full
+   slow×2 anchor + swap treatment; maturing ones appear less and lighter;
+   well-known ones appear rarely and ONLY as re-threaded swaps at speed.
+   New/unseen threads are pulled in only when your pool runs low. */
+let drilling=false;
+function maturity(st){const iv=st?st.iv||0:0;return iv<=1?0:iv<=3?1:iv<=7?2:iv<=14?3:4}
+const M_W=[6,4,3,2,1.2], M_BADGE=["🌱","🌱","🌿","🌿","🌳"];
+function buildSrsPlaylist(n){
+  let pool=DECK.filter(c=>stateOf(c.id)), padded=0;
+  if(pool.length<6){const extra=DECK.filter(c=>!stateOf(c.id)).slice(0,6-pool.length);padded=extra.length;pool=pool.concat(extra);}
+  if(!pool.length)return{list:[],padded:0};
+  const w=pool.map(c=>{const st=stateOf(c.id);return st?M_W[maturity(st)]:5});
+  const tot=w.reduce((a,b)=>a+b,0), list=[]; let last=-1;
+  for(let i=0;i<n;i++){let pick=0,tries=0;
+    do{let r=Math.random()*tot,acc=0;
+       for(pick=0;pick<w.length;pick++){acc+=w[pick];if(r<=acc)break;}
+       pick=Math.min(pick,pool.length-1);tries++;
+    }while(pool.length>1&&pick===last&&tries<8);
+    last=pick;list.push(pool[pick]);}
+  return{list,padded};
+}
+function renderDrill(){pill();const tags=[...new Set(DECK.map(c=>c.t))];const m=$("#main");
+  m.innerHTML=`
+  <p class="hint">Hands-free, matched to your SRS: 🌱 young threads come up often with the full slow-then-fast treatment; 🌿 growing ones lighter; 🌳 well-known ones appear rarely — and only re-threaded, at speed. New material joins only when your learned pool runs low. Tag modes cram everything in that tag instead.</p>
+  <div class="controls">
+    <select id="d-tag"><option value="srs">SRS進度に合わせる ★</option><option value="*">期限が来た糸 (due)</option>${tags.map(t=>`<option>${t}</option>`).join("")}</select>
+    <select id="d-gap"><option value="1">standard gaps</option><option value="1.4">longer gaps</option><option value="0.75">tight gaps</option></select>
+    <button class="go" id="d-go">▶ スタート</button><button id="d-stop">■ 停止</button>
+  </div>
+  <div class="drill-box"><div class="drill-en" id="d-en">…</div><div class="drill-ja" id="d-ja"></div></div>
+  ${storeNote()}`;
+  $("#d-go").onclick=startDrill;$("#d-stop").onclick=()=>{drilling=false;try{speechSynthesis.cancel()}catch(e){}};}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function sayJa(ja,twice){
+  const el=$("#d-ja");
+  el.innerHTML=slotHTML(ja);el.classList.add("spoken");
+  if(twice){await speak(plain(ja),true,0.78);if(!drilling)return;await sleep(700);if(!drilling)return;}
+  await speak(plain(ja),true,0.95);
+}
+async function startDrill(){
+  if(drilling)return;drilling=true;unlock();
+  const mode=$("#d-tag").value,mult=parseFloat($("#d-gap").value);
+  let rounds;
+  if(mode=="srs"){const b=buildSrsPlaylist(16);rounds=b.list.map(c=>({c,m:stateOf(c.id)?maturity(stateOf(c.id)):0}));
+    if(b.padded)($("#d-en").textContent=`（学習中の糸が少ないので、新しい糸を${b.padded}本足しました）`),await sleep(1800);}
+  else{let list=mode=="*"?dueIds():DECK.filter(c=>c.t==mode).map(c=>c.id);
+    if(!list.length)list=DECK.map(c=>c.id);
+    rounds=list.slice().sort(()=>Math.random()-.5).map(id=>({c:byId(id),m:0}));}
+  for(const{c,m}of rounds){
+    if(!drilling)break;if(!c)continue;
+    const gap=(2200+plain(c.ja).length*130)*mult;
+    const badge=mode=="srs"?M_BADGE[m]+" ":"";
+    if(m>=4){ /* mature: swap-only, at speed, one pass */
+      const s=c.sw[Math.floor(Math.random()*c.sw.length)];
+      const cue=c.en.replace(/\*.*?\*/,"*"+s[1]+"*");
+      $("#d-en").innerHTML='<span class="pulse"></span>'+badge+enHTML(cue);
+      $("#d-ja").innerHTML="";$("#d-ja").className="drill-ja";
+      await speak(cue.replace(/\*/g,""),false);if(!drilling)break;
+      await sleep(gap);if(!drilling)break;
+      await sayJa(withSwap(c.ja,s[0]),false);await sleep(1500);continue;}
+    const full=(m<=1);      /* young: slow×2 + swap ・ mid: single pass + swap */
+    $("#d-en").innerHTML='<span class="pulse"></span>'+badge+enHTML(c.en);
+    $("#d-ja").innerHTML="";$("#d-ja").className="drill-ja";
+    await speak(c.en.replace(/\*/g,""),false);if(!drilling)break;
+    await sleep(gap);if(!drilling)break;
+    await sayJa(c.ja,full);if(!drilling)break;
+    await sleep(1500);if(!drilling)break;
+    const s=c.sw[Math.floor(Math.random()*c.sw.length)];
+    $("#d-en").innerHTML='<span class="pulse"></span>'+badge+'Now with: <b style="color:var(--akane)">'+s[1]+"</b>";
+    $("#d-ja").innerHTML="";$("#d-ja").className="drill-ja";
+    await speak("Now with: "+s[1],false);if(!drilling)break;
+    await sleep(gap);if(!drilling)break;
+    await sayJa(withSwap(c.ja,s[0]),full);
+    await sleep(1700);}
+  drilling=false;$("#d-en").textContent="おしまい — session complete.";$("#d-ja").innerHTML="";}
+
+/* ================= BROWSE + progress backup ================= */
+function renderBrowse(){pill();const m=$("#main");const tags=[...new Set(DECK.map(c=>c.t))];
+  m.innerHTML=tags.map(t=>`<div class="sec">${t}</div>`+DECK.filter(c=>c.t==t).map(c=>{
+    const st=stateOf(c.id);const meta=st?`次: ${st.iv<1?"今日":Math.round(st.iv)+"日後"}`:"未習";
+    return `<div class="brow" data-id="${c.id}"><span class="jj">${slotHTML(c.ja)}</span><span class="meta">${meta}</span></div>`;}).join("")).join("")
+  +`<div class="note">タップで音声再生 ・ Progress: ${Object.keys(S.cards).length}/${DECK.length} threads picked up.</div>${storeNote()}`;
+  document.querySelectorAll(".brow").forEach(b=>b.onclick=()=>speak(plain(byId(b.dataset.id).ja)));}
+
+/* ================= SETTINGS ================= */
+function renderSettings(){pill();const m=$("#main");
+  m.innerHTML=`
+    <div class="sec">学習設定 STUDY SETTINGS</div>
+    <div class="controls">
+      <label style="align-self:center;font-size:13px;color:var(--dim)">新規カード／日</label>
+      <select id="n-per">${[0,1,2,3,5,8,12,20,35,50].map(n=>`<option value="${n}" ${S.cfg.newPerDay==n?"selected":""}>${n}${n==0?" (復習のみ)":n>=20?" (catch-up)":""}</option>`).join("")}</select>
+    </div>
+    <div class="note">3／day is the sustainable pace. The catch-up values (20+) are for rebuilding after a reset: crank it up, blitz 「🌳 知ってる」 through familiar threads (those don't use up the daily allowance), then switch back down. Changes apply immediately.</div>
+    <div class="sec">音声設定 VOICE SETTINGS</div>
+    ${noJa?jaWarnHTML():""}
+    <div class="controls">
+      <select id="v-ja">${allVoices().filter(v=>v.lang.replace("_","-").startsWith("ja")).map(v=>`<option value="${v.voiceURI}" ${JV&&v.voiceURI===JV.voiceURI?"selected":""}>🇯🇵 ${v.name}</option>`).join("")||'<option value="">— no Japanese voices —</option>'}</select>
+      <button id="v-jtest">テスト</button>
+    </div>
+    <div class="controls">
+      <select id="v-en">${allVoices().filter(v=>v.lang.startsWith("en")).map(v=>`<option value="${v.voiceURI}" ${EV&&v.voiceURI===EV.voiceURI?"selected":""}>🎙 ${v.name}</option>`).join("")||'<option value="">— no English voices —</option>'}</select>
+      <button id="v-etest">test</button>
+      <button id="v-reset">音声リセット</button>
+    </div>
+    <div class="sec">バックアップ BACKUP</div>
+    <div class="controls"><button id="b-exp">進捗をコピー</button><button id="b-imp">進捗を貼り付け</button><button id="b-help">❓ 端末間の移動</button></div>
+    <div class="note" id="help-box" style="display:none">
+      <b>📲 Move your progress to another device — 30 seconds:</b><br>
+      1. On your <b>old</b> device: tap <b>進捗をコピー</b> here — your progress is now copied as text. Send it to yourself (message, email, notes app… anywhere).<br>
+      2. On your <b>new</b> device: open this same site → 設定 → tap <b>進捗を貼り付け</b> → paste → done. Everything moves.<br>
+      <span style="color:var(--dim)">Why: progress saves automatically in each browser, per device. It survives app updates by itself — this copy/paste is for switching devices, and as a backup habit.</span>
+    </div>
+    ${storeNote()}`;
+  $("#n-per").onchange=e=>{S.cfg.newPerDay=+e.target.value;save();pill();};
+  $("#v-ja").onchange=e=>{S.cfg.jvURI=e.target.value;save();pickVoices();};
+  $("#v-en").onchange=e=>{S.cfg.evURI=e.target.value;save();pickVoices();};
+  $("#v-jtest").onclick=()=>speak("こんにちは。文型の糸へようこそ。",true);
+  $("#v-etest").onclick=()=>speak("Hello! English voice check.",false);
+  $("#v-reset").onclick=()=>{try{speechSynthesis.cancel();speechSynthesis.resume();}catch(e){}
+    setTimeout(()=>speak("リセットしました。音声は元気です。",true,1.0),250);};
+  $("#b-help").onclick=()=>{const h=$("#help-box");h.style.display=h.style.display=="none"?"block":"none";};
+  $("#b-exp").onclick=async()=>{const t=JSON.stringify(S);S.lastBackup=now();save();try{await navigator.clipboard.writeText(t);alert("コピーしました！ Saved to clipboard.")}catch(e){prompt("Copy this:",t)}};
+  $("#b-imp").onclick=()=>{const t=prompt("Paste your saved progress:");if(!t)return;
+    try{const parsed=JSON.parse(t);if(parsed&&parsed.cards){S=parsed;save();alert("復元しました！ Restored.");renderSettings();}else alert("形式が違うみたいです。")}catch(e){alert("読み込めませんでした。")}};}
+
+function storeNote(){return canStore?"":`<div class="note">⚠ This preview can't save progress. Download the file and open it in Documents / host it — then your schedule persists.</div>`}
+function backupNote(){
+  if(Object.keys(S.cards).length<10)return"";
+  const days=S.lastBackup?Math.floor((now()-S.lastBackup)/864e5):null;
+  if(days!==null&&days<10)return"";
+  return `<div class="note" style="border-color:var(--akane)">🧵 <b>バックアップのすすめ</b> — progress lives only in this browser. Copy it somewhere safe: 設定 → 進捗をコピー. ${days===null?"(You've never backed up.)":`(Last backup: ${days} days ago.)`}</div>`}
+
+setTab("rev");
+</script>
+<script>
+/* auto-updater: iOS home-screen apps cache HTML hard. On launch, fetch a fresh
+   copy (cache-bypassed); if its version differs, hot-swap the document in place.
+   Same-origin, so localStorage/SRS progress is untouched. Bump APPV each release. */
+(function(){var APPV="2026.08.30-3";
+try{if(sessionStorage.getItem("itoUpd")===APPV)return;}catch(e){}
+fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
+ .then(function(r){return r.ok?r.text():""})
+ .then(function(t){var m=t&&t.match(/APPV="([^"]+)"/);
+   if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpd",m[1]);}catch(e){}
+     document.open();document.write(t);document.close();}})
+ .catch(function(){});})();
+</script>
+</body>
+</html>
