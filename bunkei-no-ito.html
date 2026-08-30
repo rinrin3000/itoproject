@@ -495,6 +495,8 @@ function renderSettings(){pill();const m=$("#main");
       <select id="n-per">${[0,1,2,3,5,8,12,20,35,50].map(n=>`<option value="${n}" ${S.cfg.newPerDay==n?"selected":""}>${n}${n==0?" (復習のみ)":n>=20?" (catch-up)":""}</option>`).join("")}</select>
     </div>
     <div class="note">3／day is the sustainable pace. The catch-up values (20+) are for rebuilding after a reset: crank it up, blitz 「🌳 知ってる」 through familiar threads (those don't use up the daily allowance), then switch back down. Changes apply immediately.</div>
+    <div class="sec">試験が近いとき CRAMMING</div>
+    <div class="note">Don't raise 新規カード／日 to cram for a test — it distorts the schedule for weeks afterwards. Use <a href="shiken-no-ito.html" style="color:var(--akane)">試験の糸</a> instead: unscheduled flashcards for words, grammar points and every Minna verb in every form, filterable by 課 or JLPT level. It keeps its own storage and never touches the progress you've built here.</div>
     <div class="sec">音声設定 VOICE SETTINGS</div>
     ${noJa?jaWarnHTML():""}
     <div class="controls">
@@ -540,7 +542,7 @@ setTab("rev");
 /* auto-updater: iOS home-screen apps cache HTML hard. On launch, fetch a fresh
    copy (cache-bypassed); if its version differs, hot-swap the document in place.
    Same-origin, so localStorage/SRS progress is untouched. Bump APPV each release. */
-(function(){var APPV="2026.08.30-3";
+(function(){var APPV="2026.08.30-4";
 try{if(sessionStorage.getItem("itoUpd")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
