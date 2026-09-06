@@ -78,6 +78,25 @@ nav button ruby rt{font-size:.55em}
 .fbar .mute{font-size:16px;padding:0 6px;background:none;border:none}
 .fbar .mute.off{opacity:.4}
 .fex .ek{font-size:12px;color:var(--dim);margin-top:5px;line-height:1.6}
+.picked{margin-top:10px;font-size:12.5px;color:var(--ai);line-height:1.9}
+/* two-line chips: Japanese label above, plain-English gloss below */
+.chip.two{text-align:center;line-height:1.3;padding:6px 12px}
+.chip.two i{display:block;font-style:normal;font-size:10px;color:var(--dim);letter-spacing:.02em}
+.chip.two.on i{color:var(--akane);opacity:.8}
+/* 口ドリル */
+.drillbox{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:20px 17px;margin-top:14px;min-height:190px}
+.d-en{font-size:17px;color:var(--thread);line-height:1.6;min-height:52px}
+.d-en .dnum{font-size:11px;color:var(--dim);margin-right:6px}
+.d-ja{font-family:'Shippori Mincho B1',serif;font-size:23px;line-height:1.7;margin-top:14px;
+  color:var(--card2);min-height:64px;transition:color .2s}
+.d-ja.shown{color:var(--thread)}
+.d-kn{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.6;min-height:18px}
+.pulse{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--akane);
+  margin-right:8px;animation:pu 1.2s infinite}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.25}}
+nav button{font-size:13px;padding:12px 2px}
+.picked .warnx{color:var(--akane)}
 
 /* ---------- flashcard overlay ---------- */
 #flash{position:fixed;inset:0;background:var(--ink);z-index:50;display:none;flex-direction:column}
@@ -88,7 +107,9 @@ nav button ruby rt{font-size:.55em}
 .fprog i{display:block;height:100%;background:var(--akane);width:0;transition:width .2s}
 .fnum{font-size:12px;color:var(--dim);white-space:nowrap}
 .fwrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px 18px;max-width:620px;margin:0 auto;width:100%;overflow-y:auto}
-.fcue{font-size:11px;color:var(--ai);letter-spacing:.18em;text-align:center}
+.fcue{text-align:center}
+.fcue span{display:inline-block;font-size:13px;color:var(--ai);letter-spacing:.14em;
+  background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:5px 14px}
 .ffront{font-family:'Shippori Mincho B1',serif;font-size:38px;line-height:1.5;text-align:center;margin-top:16px;word-break:keep-all;overflow-wrap:anywhere}
 .ffront.en{font-family:'Noto Sans JP';font-size:23px;line-height:1.6;font-weight:500}
 .fsub{text-align:center;color:var(--dim);font-size:14px;margin-top:12px;line-height:1.7}
@@ -126,6 +147,7 @@ nav button ruby rt{font-size:.55em}
   <button id="tab-vocab" class="on"><ruby>語彙<rt>ごい</rt></ruby></button>
   <button id="tab-verb"><ruby>動詞<rt>どうし</rt></ruby></button>
   <button id="tab-gram"><ruby>文法<rt>ぶんぽう</rt></ruby></button>
+  <button id="tab-drill"><ruby>口<rt>くち</rt></ruby>ドリル</button>
   <button id="tab-set"><ruby>設定<rt>せってい</rt></ruby></button>
 </nav>
 <main id="main"></main>
@@ -2217,6 +2239,349 @@ const GRAM_CH=[
 {id:"GC32",lv:3,l:0,t:"文型",jp:"〜っぽい",en:"-ish / tends to be ～",ja:"最近、忘れっぽくなった。",kn:"さいきん、わすれっぽくなった。",ee:"I've become forgetful lately.",n:"Casual and usually critical. 子どもっぽい (childish) is an insult; 子どもらしい (childlike) is a compliment — the suffix carries the whole judgement."}
 ];
 /* =====================================================================
+   口ドリル sentence bank — みんなの日本語 初級I
+   {l: lesson, t: pattern, ja: sentence, kn: kana for TTS, en: English cue}
+   `kn` is what the synthesiser is fed, so it must be exact kana.
+   Sentences stay short on purpose: the drill asks you to SAY them from an
+   English cue, and anything longer than a breath stops being speakable.
+   ===================================================================== */
+const DRILL_A=[
+/* ---------- L1  NはNです ---------- */
+{l:1,t:"NはNです",ja:"わたしはミラーです。",kn:"わたしはミラーです。",en:"I'm Miller."},
+{l:1,t:"NはNです",ja:"ミラーさんはアメリカ人です。",kn:"ミラーさんはアメリカじんです。",en:"Mr Miller is American."},
+{l:1,t:"Nの N",ja:"わたしはIMCの社員です。",kn:"わたしはアイエムシーのしゃいんです。",en:"I'm an employee of IMC."},
+{l:1,t:"〜ですか",ja:"サントスさんは会社員ですか。",kn:"サントスさんはかいしゃいんですか。",en:"Is Mr Santos a company employee?"},
+{l:1,t:"〜じゃありません",ja:"いいえ、学生じゃありません。",kn:"いいえ、がくせいじゃありません。",en:"No, I'm not a student."},
+{l:1,t:"どなた",ja:"あの方はどなたですか。",kn:"あのかたはどなたですか。",en:"Who is that person?"},
+{l:1,t:"〜も",ja:"ワットさんも先生です。",kn:"ワットさんもせんせいです。",en:"Mr Watt is a teacher too."},
+{l:1,t:"NはNです",ja:"カリナさんは二十歳です。",kn:"カリナさんははたちです。",en:"Karina is twenty years old."},
+{l:1,t:"〜じゃありません",ja:"わたしは日本人じゃありません。",kn:"わたしはにほんじんじゃありません。",en:"I'm not Japanese."},
+{l:1,t:"あいさつ",ja:"はじめまして。どうぞよろしくお願いします。",kn:"はじめまして。どうぞよろしくおねがいします。",en:"How do you do. Pleased to meet you."},
+
+/* ---------- L2  これ／それ／あれ ---------- */
+{l:2,t:"これ／それ／あれ",ja:"これは辞書です。",kn:"これはじしょです。",en:"This is a dictionary."},
+{l:2,t:"これ／それ／あれ",ja:"それはわたしのかばんじゃありません。",kn:"それはわたしのかばんじゃありません。",en:"That isn't my bag."},
+{l:2,t:"この／その／あの N",ja:"この本はいくらですか。",kn:"このほんはいくらですか。",en:"How much is this book?"},
+{l:2,t:"Nの N",ja:"これは日本語の雑誌です。",kn:"これはにほんごのざっしです。",en:"This is a Japanese-language magazine."},
+{l:2,t:"〜の（省略）",ja:"その傘はわたしのです。",kn:"そのかさはわたしのです。",en:"That umbrella is mine."},
+{l:2,t:"何ですか",ja:"あれは何ですか。",kn:"あれはなんですか。",en:"What is that over there?"},
+{l:2,t:"そうです",ja:"はい、そうです。",kn:"はい、そうです。",en:"Yes, that's right."},
+{l:2,t:"〜の N",ja:"これは会社の車です。",kn:"これはかいしゃのくるまです。",en:"This is the company's car."},
+{l:2,t:"だれの N",ja:"この鍵はだれのですか。",kn:"このかぎはだれのですか。",en:"Whose key is this?"},
+{l:2,t:"どうぞ／どうも",ja:"どうぞ。どうもありがとうございます。",kn:"どうぞ。どうもありがとうございます。",en:"Here you are. — Thank you very much."},
+
+/* ---------- L3  ここ／そこ／あそこ ---------- */
+{l:3,t:"Nはどこですか",ja:"トイレはどこですか。",kn:"トイレはどこですか。",en:"Where is the toilet?"},
+{l:3,t:"ここ／そこ／あそこ",ja:"エレベーターはあそこです。",kn:"エレベーターはあそこです。",en:"The lift is over there."},
+{l:3,t:"Nはどこですか",ja:"事務所は二階です。",kn:"じむしょはにかいです。",en:"The office is on the second floor."},
+{l:3,t:"いくらですか",ja:"このワインはいくらですか。",kn:"このワインはいくらですか。",en:"How much is this wine?"},
+{l:3,t:"NはNです",ja:"売り場は地下一階です。",kn:"うりばはちかいっかいです。",en:"The sales floor is on the first basement level."},
+{l:3,t:"どこの N",ja:"それはどこの時計ですか。",kn:"それはどこのとけいですか。",en:"Where is that watch from?"},
+{l:3,t:"NはNです",ja:"日本の時計です。",kn:"にほんのとけいです。",en:"It's a Japanese watch."},
+{l:3,t:"Nはどこですか",ja:"すみません、階段はどちらですか。",kn:"すみません、かいだんはどちらですか。",en:"Excuse me, where are the stairs?"},
+{l:3,t:"ここ／そこ／あそこ",ja:"わたしの国はここです。",kn:"わたしのくにはここです。",en:"My country is here."},
+{l:3,t:"〜をください",ja:"これを二つください。",kn:"これをふたつください。",en:"Two of these, please."},
+
+/* ---------- L4  時間と動詞 ---------- */
+{l:4,t:"今〜時です",ja:"今、九時二十分です。",kn:"いま、くじにじゅっぷんです。",en:"It's nine twenty now."},
+{l:4,t:"〜時に〜ます",ja:"毎朝六時に起きます。",kn:"まいあさろくじにおきます。",en:"I get up at six every morning."},
+{l:4,t:"〜から〜まで",ja:"仕事は九時から五時までです。",kn:"しごとはくじからごじまでです。",en:"Work is from nine to five."},
+{l:4,t:"〜ません",ja:"日曜日は働きません。",kn:"にちようびははたらきません。",en:"I don't work on Sundays."},
+{l:4,t:"〜ました",ja:"昨日、十一時に寝ました。",kn:"きのう、じゅういちじにねました。",en:"I went to bed at eleven yesterday."},
+{l:4,t:"〜ませんでした",ja:"先週は休みませんでした。",kn:"せんしゅうはやすみませんでした。",en:"I didn't take a break last week."},
+{l:4,t:"何時に〜ますか",ja:"何時に終わりますか。",kn:"なんじにおわりますか。",en:"What time does it finish?"},
+{l:4,t:"〜時に〜ます",ja:"銀行は三時に閉まります。",kn:"ぎんこうはさんじにしまります。",en:"The bank closes at three."},
+{l:4,t:"〜から〜まで",ja:"昼休みは十二時から一時までです。",kn:"ひるやすみはじゅうにじからいちじまでです。",en:"Lunch break is from twelve to one."},
+{l:4,t:"〜ました",ja:"今朝、七時半に朝ごはんを食べました。",kn:"けさ、しちじはんにあさごはんをたべました。",en:"I ate breakfast at seven thirty this morning."},
+
+/* ---------- L5  行きます／来ます／帰ります ---------- */
+{l:5,t:"〜へ行きます",ja:"来月、京都へ行きます。",kn:"らいげつ、きょうとへいきます。",en:"I'm going to Kyoto next month."},
+{l:5,t:"〜で行きます",ja:"電車で会社へ行きます。",kn:"でんしゃでかいしゃへいきます。",en:"I go to work by train."},
+{l:5,t:"歩いて",ja:"駅まで歩いて行きます。",kn:"えきまであるいていきます。",en:"I walk to the station."},
+{l:5,t:"〜と行きます",ja:"友達と大阪へ行きました。",kn:"ともだちとおおさかへいきました。",en:"I went to Osaka with a friend."},
+{l:5,t:"いつ",ja:"いつ日本へ来ましたか。",kn:"いつにほんへきましたか。",en:"When did you come to Japan?"},
+{l:5,t:"〜へ帰ります",ja:"去年の三月に国へ帰りました。",kn:"きょねんのさんがつにくにへかえりました。",en:"I went back to my country last March."},
+{l:5,t:"〜へ行きます",ja:"今日はどこへも行きません。",kn:"きょうはどこへもいきません。",en:"I'm not going anywhere today."},
+{l:5,t:"〜で行きます",ja:"何で来ましたか。バスで来ました。",kn:"なんできましたか。バスできました。",en:"How did you get here? — I came by bus."},
+{l:5,t:"〜と行きます",ja:"一人で美術館へ行きます。",kn:"ひとりでびじゅつかんへいきます。",en:"I'm going to the museum alone."},
+{l:5,t:"誕生日",ja:"誕生日は六月十三日です。",kn:"たんじょうびはろくがつじゅうさんにちです。",en:"My birthday is the thirteenth of June."},
+
+/* ---------- L6  を／で（場所）／ませんか ---------- */
+{l:6,t:"〜を〜ます",ja:"毎朝、パンを食べます。",kn:"まいあさ、パンをたべます。",en:"I eat bread every morning."},
+{l:6,t:"〜で〜ます",ja:"図書館で日本語を勉強します。",kn:"としょかんでにほんごをべんきょうします。",en:"I study Japanese at the library."},
+{l:6,t:"何をしますか",ja:"週末、何をしますか。",kn:"しゅうまつ、なにをしますか。",en:"What are you doing at the weekend?"},
+{l:6,t:"いっしょに〜ませんか",ja:"いっしょに昼ごはんを食べませんか。",kn:"いっしょにひるごはんをたべませんか。",en:"Won't you have lunch with me?"},
+{l:6,t:"〜ましょう",ja:"ええ、行きましょう。",kn:"ええ、いきましょう。",en:"Yes, let's go."},
+{l:6,t:"〜で〜ます",ja:"うちでビールを飲みます。",kn:"うちでビールをのみます。",en:"I drink beer at home."},
+{l:6,t:"〜を〜ます",ja:"日曜日に手紙を書きました。",kn:"にちようびにてがみをかきました。",en:"I wrote a letter on Sunday."},
+{l:6,t:"何も〜ません",ja:"昨日は何もしませんでした。",kn:"きのうはなにもしませんでした。",en:"I didn't do anything yesterday."},
+{l:6,t:"いっしょに〜ませんか",ja:"土曜日に映画を見ませんか。",kn:"どようびにえいがをみませんか。",en:"Won't you see a film on Saturday?"},
+{l:6,t:"〜で〜ます",ja:"公園で写真を撮ります。",kn:"こうえんでしゃしんをとります。",en:"I take photos in the park."},
+
+/* ---------- L7  で（道具）／あげます・もらいます ---------- */
+{l:7,t:"〜で〜ます（道具）",ja:"はしでごはんを食べます。",kn:"はしでごはんをたべます。",en:"I eat rice with chopsticks."},
+{l:7,t:"〜で〜ます（道具）",ja:"日本語でレポートを書きます。",kn:"にほんごでレポートをかきます。",en:"I write reports in Japanese."},
+{l:7,t:"〜は〜語で何ですか",ja:"これは日本語で何ですか。",kn:"これはにほんごでなんですか。",en:"What is this in Japanese?"},
+{l:7,t:"〜にあげます",ja:"母に花をあげました。",kn:"ははにはなをあげました。",en:"I gave my mother flowers."},
+{l:7,t:"〜にもらいます",ja:"友達に辞書をもらいました。",kn:"ともだちにじしょをもらいました。",en:"I received a dictionary from a friend."},
+{l:7,t:"もう〜ました",ja:"もう昼ごはんを食べましたか。",kn:"もうひるごはんをたべましたか。",en:"Have you eaten lunch yet?"},
+{l:7,t:"まだです",ja:"いいえ、まだです。",kn:"いいえ、まだです。",en:"No, not yet."},
+{l:7,t:"〜にあげます",ja:"山田さんにお土産をあげます。",kn:"やまださんにおみやげをあげます。",en:"I'll give Mr Yamada a souvenir."},
+{l:7,t:"〜で〜ます（道具）",ja:"はさみで紙を切ります。",kn:"はさみでかみをきります。",en:"I cut paper with scissors."},
+{l:7,t:"〜にもらいます",ja:"だれに習いましたか。",kn:"だれにならいましたか。",en:"Who did you learn it from?"},
+
+/* ---------- L8  形容詞 ---------- */
+{l:8,t:"い形容詞",ja:"この町はとても静かです。",kn:"このまちはとてもしずかです。",en:"This town is very quiet."},
+{l:8,t:"い形容詞",ja:"日本の食べ物は高いです。",kn:"にほんのたべものはたかいです。",en:"Japanese food is expensive."},
+{l:8,t:"い形容詞の否定",ja:"この部屋は広くないです。",kn:"このへやはひろくないです。",en:"This room isn't spacious."},
+{l:8,t:"な形容詞の否定",ja:"駅はあまり便利じゃありません。",kn:"えきはあまりべんりじゃありません。",en:"The station isn't very convenient."},
+{l:8,t:"どうですか",ja:"日本の生活はどうですか。",kn:"にほんのせいかつはどうですか。",en:"How is life in Japan?"},
+{l:8,t:"どんな N",ja:"どんな映画が好きですか。",kn:"どんなえいががすきですか。",en:"What kind of films do you like?"},
+{l:8,t:"い形容詞＋N",ja:"新しいパソコンを買いました。",kn:"あたらしいパソコンをかいました。",en:"I bought a new computer."},
+{l:8,t:"な形容詞＋N",ja:"きれいな海ですね。",kn:"きれいなうみですね。",en:"What a beautiful sea."},
+{l:8,t:"いい／よくない",ja:"天気はあまりよくないです。",kn:"てんきはあまりよくないです。",en:"The weather isn't very good."},
+{l:8,t:"い形容詞",ja:"仕事は忙しいですが、面白いです。",kn:"しごとはいそがしいですが、おもしろいです。",en:"Work is busy, but it's interesting."}
+];
+const DRILL_B=[
+/* ---------- L9  が（好き・上手・わかります）／から ---------- */
+{l:9,t:"〜が好きです",ja:"わたしは日本の音楽が好きです。",kn:"わたしはにほんのおんがくがすきです。",en:"I like Japanese music."},
+{l:9,t:"〜が好きです",ja:"納豆はあまり好きじゃありません。",kn:"なっとうはあまりすきじゃありません。",en:"I don't much like natto."},
+{l:9,t:"〜が上手です",ja:"カリナさんは絵が上手です。",kn:"カリナさんはえがじょうずです。",en:"Karina is good at drawing."},
+{l:9,t:"〜がわかります",ja:"英語が少しわかります。",kn:"えいごがすこしわかります。",en:"I understand a little English."},
+{l:9,t:"〜があります",ja:"今日は時間がありません。",kn:"きょうはじかんがありません。",en:"I have no time today."},
+{l:9,t:"どうして／〜から",ja:"どうして来ませんでしたか。",kn:"どうしてきませんでしたか。",en:"Why didn't you come?"},
+{l:9,t:"どうして／〜から",ja:"用事がありましたから。",kn:"ようじがありましたから。",en:"Because I had something to do."},
+{l:9,t:"〜から、〜",ja:"時間がありませんから、タクシーで行きます。",kn:"じかんがありませんから、タクシーでいきます。",en:"I have no time, so I'll go by taxi."},
+{l:9,t:"よく／あまり",ja:"漢字はよくわかりません。",kn:"かんじはよくわかりません。",en:"I don't understand kanji well."},
+{l:9,t:"〜が下手です",ja:"わたしは料理が下手です。",kn:"わたしはりょうりがへたです。",en:"I'm bad at cooking."},
+
+/* ---------- L10  あります／います ---------- */
+{l:10,t:"〜にあります",ja:"机の上に新聞があります。",kn:"つくえのうえにしんぶんがあります。",en:"There's a newspaper on the desk."},
+{l:10,t:"〜にいます",ja:"庭に猫がいます。",kn:"にわにねこがいます。",en:"There's a cat in the garden."},
+{l:10,t:"〜は〜にあります",ja:"郵便局は駅の前にあります。",kn:"ゆうびんきょくはえきのまえにあります。",en:"The post office is in front of the station."},
+{l:10,t:"〜は〜にいます",ja:"山田さんは事務所にいます。",kn:"やまださんはじむしょにいます。",en:"Mr Yamada is in the office."},
+{l:10,t:"〜にあります",ja:"箱の中に何がありますか。",kn:"はこのなかになにがありますか。",en:"What's in the box?"},
+{l:10,t:"〜にいます",ja:"部屋にだれもいません。",kn:"へやにだれもいません。",en:"There's nobody in the room."},
+{l:10,t:"〜にあります",ja:"駅の近くにコンビニがあります。",kn:"えきのちかくにコンビニがあります。",en:"There's a convenience store near the station."},
+{l:10,t:"〜と〜の間",ja:"銀行は郵便局と病院の間にあります。",kn:"ぎんこうはゆうびんきょくとびょういんのあいだにあります。",en:"The bank is between the post office and the hospital."},
+{l:10,t:"〜にいます",ja:"家族は国にいます。",kn:"かぞくはくににいます。",en:"My family is in my home country."},
+{l:10,t:"〜にあります",ja:"かばんの中に財布がありません。",kn:"かばんのなかにさいふがありません。",en:"There's no wallet in my bag."},
+
+/* ---------- L11  数量詞 ---------- */
+{l:11,t:"数量詞＋動詞",ja:"りんごを四つ買いました。",kn:"りんごをよっつかいました。",en:"I bought four apples."},
+{l:11,t:"数量詞＋動詞",ja:"切手を五枚ください。",kn:"きってをごまいください。",en:"Five stamps, please."},
+{l:11,t:"人数",ja:"家族は四人います。",kn:"かぞくはよにんいます。",en:"There are four people in my family."},
+{l:11,t:"期間",ja:"一週間、休みました。",kn:"いっしゅうかん、やすみました。",en:"I took a week off."},
+{l:11,t:"〜に〜回",ja:"一か月に二回、日本語を習います。",kn:"いっかげつににかい、にほんごをならいます。",en:"I take Japanese lessons twice a month."},
+{l:11,t:"どのくらい",ja:"駅までどのくらいかかりますか。",kn:"えきまでどのくらいかかりますか。",en:"How long does it take to the station?"},
+{l:11,t:"期間",ja:"三十分ぐらいかかります。",kn:"さんじゅっぷんぐらいかかります。",en:"It takes about thirty minutes."},
+{l:11,t:"数量詞＋動詞",ja:"ビールを二本お願いします。",kn:"ビールをにほんおねがいします。",en:"Two bottles of beer, please."},
+{l:11,t:"〜だけ",ja:"一人だけ来ませんでした。",kn:"ひとりだけきませんでした。",en:"Only one person didn't come."},
+{l:11,t:"数量詞＋動詞",ja:"毎日、コーヒーを三杯飲みます。",kn:"まいにち、コーヒーをさんばいのみます。",en:"I drink three cups of coffee every day."},
+
+/* ---------- L12  過去・比較 ---------- */
+{l:12,t:"い形容詞の過去",ja:"昨日は暑かったです。",kn:"きのうはあつかったです。",en:"It was hot yesterday."},
+{l:12,t:"い形容詞の過去否定",ja:"旅行はあまり楽しくなかったです。",kn:"りょこうはあまりたのしくなかったです。",en:"The trip wasn't very enjoyable."},
+{l:12,t:"な形容詞の過去",ja:"去年の夏は暇でした。",kn:"きょねんのなつはひまでした。",en:"Last summer I was free."},
+{l:12,t:"〜より〜です",ja:"東京は大阪より大きいです。",kn:"とうきょうはおおさかよりおおきいです。",en:"Tokyo is bigger than Osaka."},
+{l:12,t:"〜のほうが〜",ja:"電車のほうがバスより速いです。",kn:"でんしゃのほうがバスよりはやいです。",en:"The train is faster than the bus."},
+{l:12,t:"〜と〜とどちらが",ja:"夏と冬とどちらが好きですか。",kn:"なつとふゆとどちらがすきですか。",en:"Which do you prefer, summer or winter?"},
+{l:12,t:"〜の中で一番",ja:"果物の中でみかんが一番好きです。",kn:"くだもののなかでみかんがいちばんすきです。",en:"Among fruits I like mandarins best."},
+{l:12,t:"い形容詞の過去",ja:"試験は難しかったですか。",kn:"しけんはむずかしかったですか。",en:"Was the exam difficult?"},
+{l:12,t:"な形容詞の過去否定",ja:"あの店は親切じゃありませんでした。",kn:"あのみせはしんせつじゃありませんでした。",en:"That shop wasn't friendly."},
+{l:12,t:"〜の中で一番",ja:"日本でどこが一番きれいですか。",kn:"にほんでどこがいちばんきれいですか。",en:"Where is the most beautiful place in Japan?"},
+
+/* ---------- L13  〜がほしい／〜たい／〜に行きます ---------- */
+{l:13,t:"〜がほしいです",ja:"新しい車がほしいです。",kn:"あたらしいくるまがほしいです。",en:"I want a new car."},
+{l:13,t:"〜がほしいです",ja:"今は何もほしくないです。",kn:"いまはなにもほしくないです。",en:"I don't want anything right now."},
+{l:13,t:"〜たいです",ja:"冷たい水が飲みたいです。",kn:"つめたいみずがのみたいです。",en:"I want to drink cold water."},
+{l:13,t:"〜たいです",ja:"今日はどこへも行きたくないです。",kn:"きょうはどこへもいきたくないです。",en:"I don't want to go anywhere today."},
+{l:13,t:"〜に行きます",ja:"デパートへかばんを買いに行きます。",kn:"デパートへかばんをかいにいきます。",en:"I'm going to the department store to buy a bag."},
+{l:13,t:"〜に行きます",ja:"日本へ日本語を勉強しに来ました。",kn:"にほんへにほんごをべんきょうしにきました。",en:"I came to Japan to study Japanese."},
+{l:13,t:"〜たいです",ja:"将来、日本で働きたいです。",kn:"しょうらい、にほんではたらきたいです。",en:"In the future I want to work in Japan."},
+{l:13,t:"〜に行きます",ja:"川へ釣りに行きませんか。",kn:"かわへつりにいきませんか。",en:"Won't you go fishing at the river?"},
+{l:13,t:"〜たいです",ja:"疲れましたから、少し休みたいです。",kn:"つかれましたから、すこしやすみたいです。",en:"I'm tired, so I want to rest a little."},
+{l:13,t:"〜がほしいです",ja:"子どものとき、犬がほしかったです。",kn:"こどものとき、いぬがほしかったです。",en:"When I was a child I wanted a dog."},
+
+/* ---------- L14  て形／〜てください／〜ています ---------- */
+{l:14,t:"〜てください",ja:"すみません、ゆっくり話してください。",kn:"すみません、ゆっくりはなしてください。",en:"Excuse me, please speak slowly."},
+{l:14,t:"〜てください",ja:"この漢字を書いてください。",kn:"このかんじをかいてください。",en:"Please write this kanji."},
+{l:14,t:"〜ています（進行）",ja:"今、雨が降っています。",kn:"いま、あめがふっています。",en:"It's raining right now."},
+{l:14,t:"〜ています（進行）",ja:"ミラーさんは電話をかけています。",kn:"ミラーさんはでんわをかけています。",en:"Mr Miller is making a phone call."},
+{l:14,t:"〜ましょうか",ja:"手伝いましょうか。",kn:"てつだいましょうか。",en:"Shall I help you?"},
+{l:14,t:"〜ましょうか",ja:"エアコンをつけましょうか。",kn:"エアコンをつけましょうか。",en:"Shall I turn on the air conditioner?"},
+{l:14,t:"〜てください",ja:"ちょっと待ってください。",kn:"ちょっとまってください。",en:"Please wait a moment."},
+{l:14,t:"〜ています（進行）",ja:"父は今、新聞を読んでいます。",kn:"ちちはいま、しんぶんをよんでいます。",en:"My father is reading the newspaper now."},
+{l:14,t:"〜てください",ja:"塩を取ってください。",kn:"しおをとってください。",en:"Please pass the salt."},
+{l:14,t:"〜ています（進行）",ja:"何をしていますか。",kn:"なにをしていますか。",en:"What are you doing?"},
+
+/* ---------- L15  〜てもいいです／〜ています（状態） ---------- */
+{l:15,t:"〜てもいいですか",ja:"ここで写真を撮ってもいいですか。",kn:"ここでしゃしんをとってもいいですか。",en:"May I take photos here?"},
+{l:15,t:"〜てもいいです",ja:"ええ、いいですよ。",kn:"ええ、いいですよ。",en:"Yes, that's fine."},
+{l:15,t:"〜てはいけません",ja:"ここでたばこを吸ってはいけません。",kn:"ここでたばこをすってはいけません。",en:"You mustn't smoke here."},
+{l:15,t:"〜ています（状態）",ja:"わたしは大阪に住んでいます。",kn:"わたしはおおさかにすんでいます。",en:"I live in Osaka."},
+{l:15,t:"〜ています（状態）",ja:"彼の電話番号を知っていますか。",kn:"かれのでんわばんごうをしっていますか。",en:"Do you know his phone number?"},
+{l:15,t:"知りません",ja:"いいえ、知りません。",kn:"いいえ、しりません。",en:"No, I don't know it."},
+{l:15,t:"〜ています（職業）",ja:"兄は銀行で働いています。",kn:"あにはぎんこうではたらいています。",en:"My older brother works at a bank."},
+{l:15,t:"〜ています（状態）",ja:"姉は結婚しています。",kn:"あねはけっこんしています。",en:"My older sister is married."},
+{l:15,t:"〜てもいいですか",ja:"少し休んでもいいですか。",kn:"すこしやすんでもいいですか。",en:"May I rest a little?"},
+{l:15,t:"〜てはいけません",ja:"この部屋に入ってはいけません。",kn:"このへやにはいってはいけません。",en:"You mustn't enter this room."}
+];
+/* L16–20 carry roughly twice the sentences of the other lessons: this is the
+   band being drilled for a speaking interview, so it needs enough variety
+   that the same cue never comes round twice in a sitting. */
+const DRILL_C=[
+/* ---------- L16  て形でつなぐ／〜てから／どうやって ---------- */
+{l:16,t:"〜て、〜（順序）",ja:"朝起きて、コーヒーを飲んで、会社へ行きます。",kn:"あさおきて、コーヒーをのんで、かいしゃへいきます。",en:"I get up, drink coffee, and go to work."},
+{l:16,t:"〜て、〜（順序）",ja:"駅で友達に会って、いっしょに映画を見ました。",kn:"えきでともだちにあって、いっしょにえいがをみました。",en:"I met a friend at the station and we saw a film together."},
+{l:16,t:"〜て、〜（順序）",ja:"手を洗って、ご飯を食べます。",kn:"てをあらって、ごはんをたべます。",en:"I wash my hands and eat."},
+{l:16,t:"〜てから",ja:"仕事が終わってから、飲みに行きます。",kn:"しごとがおわってから、のみにいきます。",en:"After work finishes, I'll go for a drink."},
+{l:16,t:"〜てから",ja:"日本へ来てから、三年になります。",kn:"にほんへきてから、さんねんになります。",en:"It's been three years since I came to Japan."},
+{l:16,t:"〜てから",ja:"宿題をしてから、寝ます。",kn:"しゅくだいをしてから、ねます。",en:"I'll do my homework and then go to bed."},
+{l:16,t:"〜てから",ja:"シャワーを浴びてから、朝ごはんを食べます。",kn:"シャワーをあびてから、あさごはんをたべます。",en:"I take a shower and then eat breakfast."},
+{l:16,t:"どうやって",ja:"どうやって駅へ行きますか。",kn:"どうやってえきへいきますか。",en:"How do you get to the station?"},
+{l:16,t:"どうやって",ja:"この機械はどうやって使いますか。",kn:"このきかいはどうやってつかいますか。",en:"How do you use this machine?"},
+{l:16,t:"NはNが〜",ja:"日本は物価が高いです。",kn:"にほんはぶっかがたかいです。",en:"In Japan, prices are high."},
+{l:16,t:"NはNが〜",ja:"カリナさんは髪が長いです。",kn:"カリナさんはかみがながいです。",en:"Karina has long hair."},
+{l:16,t:"NはNが〜",ja:"この町は交通が便利です。",kn:"このまちはこうつうがべんりです。",en:"This town has convenient transport."},
+{l:16,t:"〜て、〜（順序）",ja:"銀行でお金を下ろして、買い物をしました。",kn:"ぎんこうでおかねをおろして、かいものをしました。",en:"I withdrew money at the bank and did some shopping."},
+{l:16,t:"〜て、〜（順序）",ja:"服を脱いで、風呂に入ります。",kn:"ふくをぬいで、ふろにはいります。",en:"I take off my clothes and get into the bath."},
+{l:16,t:"どうやって",ja:"すみません、切符はどうやって買いますか。",kn:"すみません、きっぷはどうやってかいますか。",en:"Excuse me, how do I buy a ticket?"},
+{l:16,t:"〜てから",ja:"よく考えてから、返事します。",kn:"よくかんがえてから、へんじします。",en:"I'll think it over and then reply."},
+
+/* ---------- L17  ない形／〜なければなりません ---------- */
+{l:17,t:"〜ないでください",ja:"ここに車を止めないでください。",kn:"ここにくるまをとめないでください。",en:"Please don't park your car here."},
+{l:17,t:"〜ないでください",ja:"心配しないでください。",kn:"しんぱいしないでください。",en:"Please don't worry."},
+{l:17,t:"〜ないでください",ja:"写真を撮らないでください。",kn:"しゃしんをとらないでください。",en:"Please don't take photographs."},
+{l:17,t:"〜なければなりません",ja:"毎日、薬を飲まなければなりません。",kn:"まいにち、くすりをのまなければなりません。",en:"I have to take medicine every day."},
+{l:17,t:"〜なければなりません",ja:"明日までにレポートを出さなければなりません。",kn:"あしたまでにレポートをださなければなりません。",en:"I have to hand in the report by tomorrow."},
+{l:17,t:"〜なければなりません",ja:"何時に会社へ行かなければなりませんか。",kn:"なんじにかいしゃへいかなければなりませんか。",en:"What time do you have to go to work?"},
+{l:17,t:"〜なくてもいいです",ja:"急がなくてもいいですよ。",kn:"いそがなくてもいいですよ。",en:"You don't have to hurry."},
+{l:17,t:"〜なくてもいいです",ja:"明日は来なくてもいいです。",kn:"あしたはこなくてもいいです。",en:"You don't have to come tomorrow."},
+{l:17,t:"〜なくてもいいです",ja:"靴を脱がなくてもいいです。",kn:"くつをぬがなくてもいいです。",en:"You don't have to take off your shoes."},
+{l:17,t:"〜ないでください",ja:"まだ帰らないでください。",kn:"まだかえらないでください。",en:"Please don't go home yet."},
+{l:17,t:"〜なければなりません",ja:"パスポートを見せなければなりません。",kn:"パスポートをみせなければなりません。",en:"You have to show your passport."},
+{l:17,t:"〜なければなりません",ja:"日曜日も働かなければなりませんか。",kn:"にちようびもはたらかなければなりませんか。",en:"Do you have to work on Sundays too?"},
+{l:17,t:"〜なくてもいいです",ja:"お金を払わなくてもいいです。",kn:"おかねをはらわなくてもいいです。",en:"You don't have to pay."},
+{l:17,t:"〜ないでください",ja:"ここでたばこを吸わないでください。",kn:"ここでたばこをすわないでください。",en:"Please don't smoke here."},
+{l:17,t:"〜なければなりません",ja:"熱がありますから、病院へ行かなければなりません。",kn:"ねつがありますから、びょういんへいかなければなりません。",en:"I have a fever, so I have to go to the hospital."},
+{l:17,t:"〜ないでください",ja:"大きい声で話さないでください。",kn:"おおきいこえではなさないでください。",en:"Please don't speak in a loud voice."},
+
+/* ---------- L18  辞書形／〜ことができます／〜前に ---------- */
+{l:18,t:"〜ことができます",ja:"わたしは日本語を話すことができます。",kn:"わたしはにほんごをはなすことができます。",en:"I can speak Japanese."},
+{l:18,t:"〜ことができます",ja:"カードで払うことができますか。",kn:"カードではらうことができますか。",en:"Can I pay by card?"},
+{l:18,t:"〜ことができます",ja:"漢字を読むことができません。",kn:"かんじをよむことができません。",en:"I can't read kanji."},
+{l:18,t:"〜ことができます",ja:"ここに車を止めることができます。",kn:"ここにくるまをとめることができます。",en:"You can park your car here."},
+{l:18,t:"趣味は〜ことです",ja:"わたしの趣味は音楽を聞くことです。",kn:"わたしのしゅみはおんがくをきくことです。",en:"My hobby is listening to music."},
+{l:18,t:"趣味は〜ことです",ja:"趣味は写真を撮ることです。",kn:"しゅみはしゃしんをとることです。",en:"My hobby is taking photographs."},
+{l:18,t:"〜前に",ja:"寝る前に、歯を磨きます。",kn:"ねるまえに、はをみがきます。",en:"Before going to bed, I brush my teeth."},
+{l:18,t:"〜前に",ja:"食事の前に、手を洗います。",kn:"しょくじのまえに、てをあらいます。",en:"Before a meal, I wash my hands."},
+{l:18,t:"〜前に",ja:"日本へ来る前に、日本語を勉強しました。",kn:"にほんへくるまえに、にほんごをべんきょうしました。",en:"Before coming to Japan, I studied Japanese."},
+{l:18,t:"〜前に",ja:"三年前に結婚しました。",kn:"さんねんまえにけっこんしました。",en:"I got married three years ago."},
+{l:18,t:"〜ことができます",ja:"何メートルぐらい泳ぐことができますか。",kn:"なんメートルぐらいおよぐことができますか。",en:"About how many metres can you swim?"},
+{l:18,t:"〜前に",ja:"出かける前に、窓を閉めてください。",kn:"でかけるまえに、まどをしめてください。",en:"Before going out, please close the windows."},
+{l:18,t:"〜ことができます",ja:"インターネットで切符を買うことができます。",kn:"インターネットできっぷをかうことができます。",en:"You can buy tickets on the internet."},
+{l:18,t:"趣味は〜ことです",ja:"父の趣味は山に登ることです。",kn:"ちちのしゅみはやまにのぼることです。",en:"My father's hobby is climbing mountains."},
+{l:18,t:"〜前に",ja:"授業が始まる前に、教室を掃除します。",kn:"じゅぎょうがはじまるまえに、きょうしつをそうじします。",en:"Before class starts, we clean the classroom."},
+{l:18,t:"〜ことができます",ja:"ここから富士山を見ることができます。",kn:"ここからふじさんをみることができます。",en:"You can see Mt Fuji from here."},
+
+/* ---------- L19  た形／〜たことがあります／〜たり／〜くなります ---------- */
+{l:19,t:"〜たことがあります",ja:"富士山に登ったことがあります。",kn:"ふじさんにのぼったことがあります。",en:"I've climbed Mt Fuji."},
+{l:19,t:"〜たことがあります",ja:"馬に乗ったことがありますか。",kn:"うまにのったことがありますか。",en:"Have you ever ridden a horse?"},
+{l:19,t:"〜たことがあります",ja:"いいえ、一度もありません。",kn:"いいえ、いちどもありません。",en:"No, not even once."},
+{l:19,t:"〜たことがあります",ja:"京都のお寺を見たことがあります。",kn:"きょうとのおてらをみたことがあります。",en:"I've seen the temples in Kyoto."},
+{l:19,t:"〜たり〜たり",ja:"日曜日は掃除したり、洗濯したりします。",kn:"にちようびはそうじしたり、せんたくしたりします。",en:"On Sundays I do things like cleaning and laundry."},
+{l:19,t:"〜たり〜たり",ja:"休みの日は本を読んだり、散歩したりします。",kn:"やすみのひはほんをよんだり、さんぽしたりします。",en:"On my days off I read books, go for walks, and so on."},
+{l:19,t:"〜たり〜たり",ja:"昨日は友達と話したり、写真を撮ったりしました。",kn:"きのうはともだちとはなしたり、しゃしんをとったりしました。",en:"Yesterday I chatted with friends, took photos, and so on."},
+{l:19,t:"〜くなります",ja:"だんだん寒くなりました。",kn:"だんだんさむくなりました。",en:"It's gradually gotten cold."},
+{l:19,t:"〜くなります",ja:"日本語が上手になりました。",kn:"にほんごがじょうずになりました。",en:"My Japanese has gotten better."},
+{l:19,t:"〜になります",ja:"来月、二十五歳になります。",kn:"らいげつ、にじゅうごさいになります。",en:"Next month I'll turn twenty-five."},
+{l:19,t:"〜になります",ja:"部屋がきれいになりました。",kn:"へやがきれいになりました。",en:"The room has become clean."},
+{l:19,t:"〜くなります",ja:"薬を飲みましたから、元気になりました。",kn:"くすりをのみましたから、げんきになりました。",en:"I took medicine, so I feel better."},
+{l:19,t:"〜たことがあります",ja:"日本のお酒を飲んだことがありません。",kn:"にほんのおさけをのんだことがありません。",en:"I've never drunk Japanese sake."},
+{l:19,t:"〜たり〜たり",ja:"夏休みは泳いだり、山に登ったりしたいです。",kn:"なつやすみはおよいだり、やまにのぼったりしたいです。",en:"In the summer holidays I want to swim, climb mountains, and so on."},
+{l:19,t:"〜くなります",ja:"もうすぐ暖かくなります。",kn:"もうすぐあたたかくなります。",en:"It'll get warm soon."},
+{l:19,t:"〜たことがあります",ja:"一度、着物を着たことがあります。",kn:"いちど、きものをきたことがあります。",en:"I've worn a kimono once."},
+
+/* ---------- L20  普通形（カジュアル） ---------- */
+{l:20,t:"普通形（動詞）",ja:"明日、時間ある？",kn:"あした、じかんある？",en:"Got time tomorrow?"},
+{l:20,t:"普通形（動詞）",ja:"うん、あるよ。",kn:"うん、あるよ。",en:"Yeah, I do."},
+{l:20,t:"普通形（動詞）",ja:"ううん、忙しい。",kn:"ううん、いそがしい。",en:"No, I'm busy."},
+{l:20,t:"普通形（動詞）",ja:"昼ごはん、もう食べた？",kn:"ひるごはん、もうたべた？",en:"Have you eaten lunch yet?"},
+{l:20,t:"普通形（動詞）",ja:"今日は会社へ行かない。",kn:"きょうはかいしゃへいかない。",en:"I'm not going to work today."},
+{l:20,t:"普通形（い形容詞）",ja:"この店のラーメン、おいしいね。",kn:"このみせのラーメン、おいしいね。",en:"The ramen at this place is good, isn't it."},
+{l:20,t:"普通形（い形容詞）",ja:"昨日の映画、面白くなかった。",kn:"きのうのえいが、おもしろくなかった。",en:"Yesterday's film wasn't interesting."},
+{l:20,t:"普通形（な形容詞・名詞）",ja:"あの人、元気？",kn:"あのひと、げんき？",en:"Is he doing well?"},
+{l:20,t:"普通形（な形容詞・名詞）",ja:"うん、元気だよ。",kn:"うん、げんきだよ。",en:"Yeah, he's fine."},
+{l:20,t:"普通形（な形容詞・名詞）",ja:"あれ、田中さんの車？",kn:"あれ、たなかさんのくるま？",en:"Is that Tanaka's car?"},
+{l:20,t:"普通形（動詞）",ja:"どこ行くの？",kn:"どこいくの？",en:"Where are you going?"},
+{l:20,t:"普通形（動詞）",ja:"ちょっとコンビニまで。",kn:"ちょっとコンビニまで。",en:"Just to the convenience store."},
+{l:20,t:"普通形（動詞）",ja:"手伝おうか？",kn:"てつだおうか？",en:"Shall I help?"},
+{l:20,t:"普通形（動詞）",ja:"疲れたから、今日はもう帰る。",kn:"つかれたから、きょうはもうかえる。",en:"I'm tired, so I'm going home now."},
+{l:20,t:"普通形（い形容詞）",ja:"今日はあまり暑くない。",kn:"きょうはあまりあつくない。",en:"It isn't very hot today."},
+{l:20,t:"普通形（動詞）",ja:"日曜日、何するの？",kn:"にちようび、なにするの？",en:"What are you doing on Sunday?"}
+];
+const DRILL_D=[
+/* ---------- L21  〜と思います／〜と言いました ---------- */
+{l:21,t:"〜と思います",ja:"彼は来ないと思います。",kn:"かれはこないとおもいます。",en:"I don't think he'll come."},
+{l:21,t:"〜と思います",ja:"日本の生活は便利だと思います。",kn:"にほんのせいかつはべんりだとおもいます。",en:"I think life in Japan is convenient."},
+{l:21,t:"〜と思います",ja:"明日は雨が降ると思います。",kn:"あしたはあめがふるとおもいます。",en:"I think it'll rain tomorrow."},
+{l:21,t:"〜についてどう思いますか",ja:"この計画についてどう思いますか。",kn:"このけいかくについてどうおもいますか。",en:"What do you think about this plan?"},
+{l:21,t:"〜と言いました",ja:"田中さんは来週休むと言っていました。",kn:"たなかさんはらいしゅうやすむといっていました。",en:"Tanaka said he'd take next week off."},
+{l:21,t:"〜と言いました",ja:"母に行くと言いました。",kn:"ははにいくといいました。",en:"I told my mother I'd go."},
+{l:21,t:"〜でしょう？",ja:"暑いでしょう？",kn:"あついでしょう？",en:"It's hot, isn't it?"},
+{l:21,t:"〜でしょう",ja:"明日は晴れるでしょう。",kn:"あしたははれるでしょう。",en:"It'll probably be sunny tomorrow."},
+{l:21,t:"〜と思います",ja:"その意見はよくないと思います。",kn:"そのいけんはよくないとおもいます。",en:"I don't think that opinion is good."},
+{l:21,t:"〜と言いました",ja:"すみませんと言ってください。",kn:"すみませんといってください。",en:"Please say sorry."},
+
+/* ---------- L22  名詞修飾 ---------- */
+{l:22,t:"名詞修飾",ja:"これはわたしが撮った写真です。",kn:"これはわたしがとったしゃしんです。",en:"This is the photo I took."},
+{l:22,t:"名詞修飾",ja:"昨日買った本はとても面白いです。",kn:"きのうかったほんはとてもおもしろいです。",en:"The book I bought yesterday is very interesting."},
+{l:22,t:"名詞修飾",ja:"あそこで話している人は山田さんです。",kn:"あそこではなしているひとはやまださんです。",en:"The person talking over there is Mr Yamada."},
+{l:22,t:"名詞修飾",ja:"わたしが住んでいる町は静かです。",kn:"わたしがすんでいるまちはしずかです。",en:"The town I live in is quiet."},
+{l:22,t:"名詞修飾",ja:"日本語を教えている先生はどなたですか。",kn:"にほんごをおしえているせんせいはどなたですか。",en:"Who is the teacher who teaches Japanese?"},
+{l:22,t:"名詞修飾",ja:"母が作った料理が食べたいです。",kn:"ははがつくったりょうりがたべたいです。",en:"I want to eat the food my mother made."},
+{l:22,t:"名詞修飾",ja:"友達にもらった時計をなくしました。",kn:"ともだちにもらったとけいをなくしました。",en:"I lost the watch I got from a friend."},
+{l:22,t:"名詞修飾",ja:"駅の前にある喫茶店で待っています。",kn:"えきのまえにあるきっさてんでまっています。",en:"I'll be waiting at the café in front of the station."},
+{l:22,t:"名詞修飾",ja:"英語がわかる人はいますか。",kn:"えいごがわかるひとはいますか。",en:"Is there anyone who understands English?"},
+
+/* ---------- L23  〜とき／〜と ---------- */
+{l:23,t:"〜とき",ja:"日本へ行くとき、かばんを買いました。",kn:"にほんへいくとき、かばんをかいました。",en:"When I went to Japan, I bought a bag [before leaving]."},
+{l:23,t:"〜とき",ja:"日本へ行ったとき、着物を買いました。",kn:"にほんへいったとき、きものをかいました。",en:"When I went to Japan, I bought a kimono [after arriving]."},
+{l:23,t:"〜とき",ja:"暇なとき、映画を見ます。",kn:"ひまなとき、えいがをみます。",en:"When I'm free, I watch films."},
+{l:23,t:"〜とき",ja:"子どものとき、よく川で泳ぎました。",kn:"こどものとき、よくかわでおよぎました。",en:"When I was a child, I often swam in the river."},
+{l:23,t:"〜とき",ja:"使い方がわからないとき、聞いてください。",kn:"つかいかたがわからないとき、きいてください。",en:"When you don't know how to use it, please ask."},
+{l:23,t:"〜と",ja:"このボタンを押すと、水が出ます。",kn:"このボタンをおすと、みずがでます。",en:"If you press this button, water comes out."},
+{l:23,t:"〜と",ja:"右へ曲がると、郵便局があります。",kn:"みぎへまがると、ゆうびんきょくがあります。",en:"If you turn right, there's a post office."},
+{l:23,t:"〜と",ja:"春になると、桜が咲きます。",kn:"はるになると、さくらがさきます。",en:"When spring comes, the cherry blossoms bloom."},
+{l:23,t:"〜とき",ja:"寒いとき、この上着を着ます。",kn:"さむいとき、このうわぎをきます。",en:"When it's cold, I wear this jacket."},
+{l:23,t:"〜と",ja:"この道をまっすぐ行くと、駅に着きます。",kn:"このみちをまっすぐいくと、えきにつきます。",en:"If you go straight along this road, you'll reach the station."},
+
+/* ---------- L24  授受（くれます・〜てあげます） ---------- */
+{l:24,t:"くれます",ja:"友達が本を貸してくれました。",kn:"ともだちがほんをかしてくれました。",en:"My friend lent me a book."},
+{l:24,t:"くれます",ja:"山田さんがお土産をくれました。",kn:"やまださんがおみやげをくれました。",en:"Mr Yamada gave me a souvenir."},
+{l:24,t:"〜てあげます",ja:"わたしは友達に日本語を教えてあげました。",kn:"わたしはともだちににほんごをおしえてあげました。",en:"I taught my friend Japanese."},
+{l:24,t:"〜てもらいます",ja:"山田さんに駅まで送ってもらいました。",kn:"やまださんにえきまでおくってもらいました。",en:"Mr Yamada gave me a lift to the station."},
+{l:24,t:"〜てくれます",ja:"母が朝ごはんを作ってくれます。",kn:"ははがあさごはんをつくってくれます。",en:"My mother makes breakfast for me."},
+{l:24,t:"〜てもらいます",ja:"友達に写真を撮ってもらいました。",kn:"ともだちにしゃしんをとってもらいました。",en:"I had a friend take a photo."},
+{l:24,t:"〜てあげます",ja:"荷物を持ってあげましょうか。",kn:"にもつをもってあげましょうか。",en:"Shall I carry your luggage?"},
+{l:24,t:"〜てくれます",ja:"だれが手伝ってくれましたか。",kn:"だれがてつだってくれましたか。",en:"Who helped you?"},
+{l:24,t:"〜てもらいます",ja:"先生に手紙を直してもらいます。",kn:"せんせいにてがみをなおしてもらいます。",en:"I'll have my teacher correct my letter."},
+{l:24,t:"くれます",ja:"兄が自転車をくれました。",kn:"あにがじてんしゃをくれました。",en:"My older brother gave me a bicycle."},
+
+/* ---------- L25  〜たら／〜ても ---------- */
+{l:25,t:"〜たら",ja:"雨が降ったら、行きません。",kn:"あめがふったら、いきません。",en:"If it rains, I won't go."},
+{l:25,t:"〜たら",ja:"お金があったら、旅行したいです。",kn:"おかねがあったら、りょこうしたいです。",en:"If I had money, I'd want to travel."},
+{l:25,t:"〜たら",ja:"駅に着いたら、電話してください。",kn:"えきについたら、でんわしてください。",en:"When you arrive at the station, please call me."},
+{l:25,t:"〜たら",ja:"安かったら、買います。",kn:"やすかったら、かいます。",en:"If it's cheap, I'll buy it."},
+{l:25,t:"〜たら",ja:"暇だったら、手伝ってください。",kn:"ひまだったら、てつだってください。",en:"If you're free, please help me."},
+{l:25,t:"〜ても",ja:"雨が降っても、行きます。",kn:"あめがふっても、いきます。",en:"Even if it rains, I'll go."},
+{l:25,t:"〜ても",ja:"高くても、買いたいです。",kn:"たかくても、かいたいです。",en:"Even if it's expensive, I want to buy it."},
+{l:25,t:"〜ても",ja:"日曜日でも、働きます。",kn:"にちようびでも、はたらきます。",en:"Even on Sundays, I work."},
+{l:25,t:"〜たら",ja:"大学を卒業したら、日本で働きます。",kn:"だいがくをそつぎょうしたら、にほんではたらきます。",en:"When I graduate from university, I'll work in Japan."},
+{l:25,t:"〜ても",ja:"何回説明しても、わかりません。",kn:"なんかいせつめいしても、わかりません。",en:"No matter how many times you explain, I don't understand."}
+];
+/* =====================================================================
    試験の糸 — non-SRS cram flashcards.
    Sister app to 文型の糸 (which owns the spaced-repetition side).
    Storage key is "shiken_v1" — it NEVER touches bunkei_v2, so nobody's
@@ -2251,6 +2616,7 @@ VERBS.forEach(v => (BYREAD[v.r] ??= []).push(v));
 VERBS.forEach(v => { v.trap = BYREAD[v.r].length > 1; });
 
 const GRAM = [].concat(GRAM_S1, GRAM_S2, GRAM_CH);
+const DRILL = [].concat(DRILL_A, DRILL_B, DRILL_C, DRILL_D);
 
 /* ================= conjugation ================= */
 const U_OF={"い":"う","き":"く","ぎ":"ぐ","し":"す","ち":"つ","に":"ぬ","び":"ぶ","み":"む","り":"る"};
@@ -2351,6 +2717,20 @@ const FORM_RUBY = {
    engine can't misread 行って as おこなって. */
 let JV=null,EV=null,currentU=null,unlocked=false,speakToken=0,noJa=false,voicesSettled=false;
 const SPOKEN=[];   /* rolling log of what was actually voiced — debug + tests */
+/* ---- EDITABLE: TTS pronunciation overrides -------------------------------
+   Apple's Kyoko applies sequential voicing (rendaku) across seams it thinks
+   it sees inside a kana string, so an isolated word can come out as ...づき
+   where ...つき was meant. Google's Japanese voice does not do this.
+   Left side = the kana we store. Right side = what to FEED the synthesiser.
+   A space or 、 at the seam is usually enough to stop the voicing; katakana
+   sometimes helps too. Add entries freely — nothing else depends on this. */
+const SAY_FIX = {
+  "まいつき":   "まい つき",
+  "ひとつき":   "ひと つき",
+  "みつき":     "み つき",
+  "だいすき":   "だい すき",
+  "ものすごい": "もの すごい"
+};
 function allVoices(){ try{ return speechSynthesis.getVoices()||[]; }catch(e){ return []; } }
 function pickVoices(){
   const vs = allVoices(), isJa = v => v.lang.replace("_","-").startsWith("ja");
@@ -2379,6 +2759,7 @@ document.addEventListener("touchstart", unlock, {once:true});
 document.addEventListener("click", unlock, {once:true});
 function speak(text, jp=true, rate=0.92, _retry=false){
   if(!_retry){ SPOKEN.push(text); if(SPOKEN.length>40) SPOKEN.shift(); }
+  if(jp && SAY_FIX[text]) text = SAY_FIX[text];
   const myToken = ++speakToken;
   return new Promise(async res=>{
     try{
@@ -2448,15 +2829,17 @@ function chipRow(items, isOn, onTap, cls){
 let TAB = "vocab";
 function setTab(t){
   TAB = t;
-  ["vocab","verb","gram","set"].forEach(x => $("#tab-"+x).classList.toggle("on", x===t));
+  ["vocab","verb","gram","drill","set"].forEach(x => $("#tab-"+x).classList.toggle("on", x===t));
+  drilling = false;
   try{ speechSynthesis.cancel(); }catch(e){}
   if(t==="vocab") renderVocab();
   if(t==="verb")  renderVerb();
   if(t==="gram")  renderGram();
+  if(t==="drill") renderDrill();
   if(t==="set")   renderSettings();
   window.scrollTo(0,0);
 }
-["vocab","verb","gram","set"].forEach(x => $("#tab-"+x).onclick = () => setTab(x));
+["vocab","verb","gram","drill","set"].forEach(x => $("#tab-"+x).onclick = () => setTab(x));
 function paintPill(){
   const n = Object.keys(S.star).length;
   $("#hpill").textContent = n ? `★ ${n}` : `${WORDS.length + VERBS.length + GRAM.length}枚`;
@@ -2613,6 +2996,11 @@ function renderVerb(){
   <div class="sec">${RB("形","けい")}（${RB("複数選択可","ふくすうせんたくか")}）</div>
   <div class="chips" id="b-f">
     ${FORMS.map(f=>`<button class="chip sm ${BF.forms.has(f[0])?"on":""}" data-f="${f[0]}">${FORM_RUBY[f[0]]}</button>`).join("")}</div>
+  <div class="picked" id="b-picked"></div>
+  <div class="chips" style="margin-top:8px">
+    <button class="chip sm" id="b-all">${RB("全部","ぜんぶ")}</button>
+    <button class="chip sm" id="b-none">${RB("全部","ぜんぶ")}はずす</button>
+  </div>
   <div class="sec">${RB("絞","しぼ")}り${RB("込","こ")}み</div>
   <div class="row2">
     <input type="text" id="b-lr" placeholder="課（か） e.g. 14-19" value="${esc(BF.lrText)}">
@@ -2625,9 +3013,7 @@ function renderVerb(){
   </div>
   <input type="search" id="b-q" placeholder="検索 — 漢字・かな・English" value="${esc(BF.q)}" style="margin-top:8px">
   <div class="count" id="b-count"></div>
-  <div class="gorow"><button class="go" id="b-go">▶ めくる</button>
-    <button class="alt" id="b-all">${RB("形","けい")}を${RB("全部","ぜんぶ")}</button>
-    <button class="alt" id="b-none">${RB("形","けい")}を1つに</button></div>
+  <button class="go" id="b-go">▶ めくる</button>
   <div class="list" id="b-list"></div>`;
   $("#b-sort").value = BF.sort;
   $("#b-g").querySelectorAll("button").forEach(b => b.onclick = ()=>{
@@ -2637,11 +3023,7 @@ function renderVerb(){
   $("#b-f").querySelectorAll("button").forEach(b => b.onclick = ()=>{
     const f = b.dataset.f; BF.forms.has(f)?BF.forms.delete(f):BF.forms.add(f); renderVerb(); });
   $("#b-all").onclick  = () => { BF.forms = new Set(FORMS.map(f=>f[0])); renderVerb(); };
-  $("#b-none").onclick = () => {
-    /* keep the single most-recently-useful form so the deck is never empty;
-       stops グループ cards sneaking into a "just ない形" session */
-    const keep = FORMS.map(f=>f[0]).find(f => BF.forms.has(f) && f !== "group") || "dict";
-    BF.forms = new Set([keep]); renderVerb(); };
+  $("#b-none").onclick = () => { BF.forms = new Set(); renderVerb(); };
   $("#b-lr").oninput = e => { BF.lrText = e.target.value; BF.lr = parseRanges(e.target.value,50); paintVerb(); };
   $("#b-q").oninput  = e => { BF.q = e.target.value.trim(); paintVerb(); };
   $("#b-sort").onchange = e => { BF.sort = e.target.value; paintVerb(); };
@@ -2649,7 +3031,12 @@ function renderVerb(){
   paintVerb();
 }
 function paintVerb(){
-  const sel = verbSel(), nf = BF.forms.size;
+  const sel = verbSel(), on = FORMS.filter(f => BF.forms.has(f[0])), nf = on.length;
+  /* spell the deck out. Leaving グループ switched on next to ない形 silently
+     doubled the deck with group-ID cards and there was no way to see it. */
+  $("#b-picked").innerHTML = nf
+    ? `${RB("選","えら")}んだ${RB("形","けい")}（${nf}）：` + on.map(f=>FORM_RUBY[f[0]]).join("・")
+    : `<span class="warnx">${RB("形","けい")}が${RB("選","えら")}ばれていません</span>`;
   $("#b-count").innerHTML = `<b>${sel.length}</b> ${RB("動詞","どうし")} × <b>${nf}</b> ${RB("形","けい")} = <b>${sel.length*nf}</b> ${RB("枚","まい")}`;
   $("#b-go").disabled = !sel.length || !nf;
   const l = $("#b-list");
@@ -2705,7 +3092,14 @@ function verbCards(sel){
 /* =====================================================================
    文法 — grammar points
    ===================================================================== */
-const GTAGS = ["助詞","動詞形","文型","対比","条件","授受","敬語","自他","伝聞"];
+/* tag, furigana, plain-English gloss — the bare kanji told you nothing */
+const GTAGS_META = [
+  ["助詞","じょし","particles"], ["動詞形","どうしけい","verb forms"],
+  ["文型","ぶんけい","sentence patterns"], ["対比","たいひ","easily-confused pairs"],
+  ["条件","じょうけん","if / when"], ["授受","じゅじゅ","giving & receiving"],
+  ["敬語","けいご","polite & humble"], ["自他","じた","transitive vs intransitive"],
+  ["伝聞","でんぶん","hearsay & appearance"]];
+const GTAGS = GTAGS_META.map(g => g[0]);
 const GF = { lv:new Set(), t:new Set(), lr:null, lrText:"", q:"", star:false, sort:"lesson" };
 function gramPass(g){
   if(GF.star) return starred("G:"+g.id);
@@ -2734,7 +3128,7 @@ function renderGram(){
     <button class="chip ${GF.lv.has(3)?"on":""}" data-l="3">${RB("中級","ちゅうきゅう")}・JLPT</button>
     <button class="chip warn ${GF.star?"on":""}" data-star="1">★ キープ</button></div>
   <div class="sec">タイプ</div>
-  <div class="chips" id="g-t">${GTAGS.map(t=>`<button class="chip sm ${GF.t.has(t)?"on":""}" data-t="${t}">${t}</button>`).join("")}</div>
+  <div class="chips" id="g-t">${GTAGS_META.map(g=>`<button class="chip sm two ${GF.t.has(g[0])?"on":""}" data-t="${g[0]}">${RB(g[0],g[1])}<i>${g[2]}</i></button>`).join("")}</div>
   <div class="sec">${RB("絞","しぼ")}り${RB("込","こ")}み</div>
   <div class="row2">
     <input type="text" id="g-lr" placeholder="課（か） e.g. 26-30" value="${esc(GF.lrText)}">
@@ -2837,7 +3231,7 @@ function drawCard(){
   $("#f-prog").style.width = (FI/FTOTAL*100) + "%";
   $("#f-num").textContent = `${FI+1} / ${FQ.length}`;
   $("#f-wrap").innerHTML = `
-    <div class="fcue">${c.cueH || ""}</div>
+    <div class="fcue"><span>${c.cueH || ""}</span></div>
     <div class="ffront ${c.frontEn?"en":""}">${esc(c.front)}</div>
     ${c.sub ? `<div class="fsub">${esc(c.sub)}</div>` : ""}
     <div id="f-back"></div>
@@ -2897,6 +3291,150 @@ function drawDone(){
   $("#d-end").onclick = endFlash;
 }
 
+
+/* =====================================================================
+   口ドリル — hands-free speaking practice.
+   Same shape as 型ドリル in 文型の糸: English cue, then SILENCE long enough
+   to actually say it, then the Japanese slow, then at speed. The silence is
+   the exercise; everything else is scaffolding. Scoped to whichever 課 you
+   pick so nothing you haven't met yet can turn up.
+   ===================================================================== */
+const DF = { lr:null, lrText:"", t:new Set(), q:"", gap:1, twice:true, order:"random" };
+let drilling = false, dIdx = 0, dList = [];
+function drillPass(c){
+  if(DF.lr && !inRanges(c.l, DF.lr)) return false;
+  if(DF.t.size && !DF.t.has(c.t)) return false;
+  if(DF.q){ const q = DF.q.toLowerCase();
+    if(!(c.ja.includes(DF.q) || c.kn.includes(DF.q) || c.en.toLowerCase().includes(q)
+         || c.t.includes(DF.q))) return false; }
+  return true;
+}
+function drillSel(){
+  const out = DRILL.filter(drillPass);
+  return DF.order==="random" ? shuffled(out) : out;
+}
+/* patterns available inside the currently chosen 課 range — no point offering
+   〜たら chips to somebody drilling L1–10 */
+function drillTags(){
+  const seen = [];
+  DRILL.forEach(c => { if((!DF.lr || inRanges(c.l, DF.lr)) && !seen.includes(c.t)) seen.push(c.t); });
+  return seen;
+}
+function renderDrill(){
+  const m = $("#main");
+  const tags = drillTags();
+  m.innerHTML = (noJa ? jaWarnHTML() : "") + `
+  <p class="hint">Hands-free. You hear the English, then a gap — say it out loud in Japanese — then the answer, slowly and then at speed. Put the phone down and talk.</p>
+  <div class="sec">${RB("課","か")}をえらぶ</div>
+  <div class="chips" id="d-quick">
+    <button class="chip sm" data-r="1-25">${RB("初級","しょきゅう")}I ぜんぶ</button>
+    <button class="chip sm" data-r="1-10">L1–10</button>
+    <button class="chip sm" data-r="11-15">L11–15</button>
+    <button class="chip sm" data-r="16-20">L16–20</button>
+    <button class="chip sm" data-r="21-25">L21–25</button>
+  </div>
+  <input type="text" id="d-lr" placeholder="課（か） e.g. 16-20" value="${esc(DF.lrText)}" style="margin-top:9px">
+  <div class="sec">${RB("文型","ぶんけい")}（${RB("選","えら")}ばなければ${RB("全部","ぜんぶ")}）</div>
+  <div class="chips" id="d-t">${tags.map(t=>
+    `<button class="chip sm ${DF.t.has(t)?"on":""}" data-t="${esc(t)}">${esc(t)}</button>`).join("")
+    || `<span class="hint">課をえらんでください。</span>`}</div>
+  <div class="sec">${RB("間","ま")}のとり${RB("方","かた")}</div>
+  <div class="row2">
+    <select id="d-gap">
+      <option value="1">ふつうの間（standard gap）</option>
+      <option value="1.5">長めの間（more thinking time）</option>
+      <option value="0.75">短い間（tight, for review）</option>
+    </select>
+    <select id="d-twice">
+      <option value="1">ゆっくり＋ふつう（slow then normal）</option>
+      <option value="0">ふつうだけ（normal only）</option>
+    </select>
+  </div>
+  <input type="search" id="d-q" placeholder="検索（けんさく） — 文型・例文・English" value="${esc(DF.q)}" style="margin-top:8px">
+  <div class="count" id="d-count"></div>
+  <div class="gorow">
+    <button class="go" id="d-go">▶ はじめる</button>
+    <button class="alt" id="d-stop">■ とめる</button>
+  </div>
+  <div class="drillbox">
+    <div class="d-en" id="d-en">…</div>
+    <div class="d-ja" id="d-ja"></div>
+    <div class="d-kn" id="d-kn"></div>
+  </div>
+  <div class="list" id="d-list"></div>`;
+  $("#d-gap").value = String(DF.gap);
+  $("#d-twice").value = DF.twice ? "1" : "0";
+  $("#d-quick").querySelectorAll("button").forEach(b => b.onclick = ()=>{
+    DF.lrText = b.dataset.r; DF.lr = parseRanges(b.dataset.r, 25); DF.t = new Set(); renderDrill(); });
+  $("#d-lr").oninput = e => { DF.lrText = e.target.value; DF.lr = parseRanges(e.target.value, 25);
+    DF.t = new Set(); renderDrill(); $("#d-lr").focus(); };
+  $("#d-t").querySelectorAll("button").forEach(b => b.onclick = ()=>{
+    const t = b.dataset.t; DF.t.has(t) ? DF.t.delete(t) : DF.t.add(t); renderDrill(); });
+  $("#d-q").oninput = e => { DF.q = e.target.value.trim(); paintDrill(); };
+  $("#d-gap").onchange = e => { DF.gap = parseFloat(e.target.value); };
+  $("#d-twice").onchange = e => { DF.twice = e.target.value === "1"; };
+  $("#d-go").onclick = startDrill;
+  $("#d-stop").onclick = stopDrill;
+  paintDrill();
+}
+function paintDrill(){
+  const sel = drillSel();
+  const mins = Math.round(sel.length * (DF.twice?13:9) * DF.gap / 60);
+  $("#d-count").innerHTML = `<b>${sel.length}</b> ${RB("文","ぶん")}`
+    + (sel.length ? ` ・ およそ ${mins || 1} ${RB("分","ふん")}` : "");
+  $("#d-go").disabled = !sel.length || drilling;
+  const l = $("#d-list");
+  if(!sel.length){ l.innerHTML = `<div class="empty">課をえらぶと文が出ます。</div>`; return; }
+  const byL = {};
+  sel.forEach(c => (byL[c.l] ??= []).push(c));
+  l.innerHTML = Object.keys(byL).sort((a,b)=>a-b).map(k =>
+    `<div class="sec">${RB("第","だい")}${k}${RB("課","か")}</div>` + byL[k].map(c =>
+      `<div class="lrow"><div class="lft">
+        <div class="lj" style="font-size:16px">${esc(c.ja)}</div>
+        <div class="lk">${esc(c.kn)}</div>
+        <div class="lm">${esc(c.en)}</div></div>
+        <div class="rgt"><div><span class="tag">${esc(c.t)}</span></div>
+        <div><button class="mini" data-say="${esc(c.kn)}">▶</button></div></div></div>`).join("")).join("");
+  wireRows(l);
+}
+function stopDrill(){
+  drilling = false;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const en = $("#d-en"); if(en) en.textContent = "とめました。";
+  const go = $("#d-go"); if(go) go.disabled = !drillSel().length;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function startDrill(){
+  if(drilling) return;
+  dList = drillSel();
+  if(!dList.length) return;
+  drilling = true; unlock();
+  $("#d-go").disabled = true;
+  for(let i=0; i<dList.length; i++){
+    const c = dList[i];
+    if(!drilling) break;
+    /* gap scales with the length of what you have to produce */
+    const gap = (2100 + c.kn.length * 135) * DF.gap;
+    $("#d-en").innerHTML = `<span class="pulse"></span><span class="dnum">${i+1}/${dList.length}</span> ${esc(c.en)}`;
+    $("#d-ja").textContent = ""; $("#d-ja").classList.remove("shown");
+    $("#d-kn").textContent = "";
+    await speak(c.en, false);                     if(!drilling) break;
+    await sleep(gap);                             if(!drilling) break;
+    $("#d-ja").textContent = c.ja; $("#d-ja").classList.add("shown");
+    $("#d-kn").textContent = c.kn;
+    if(DF.twice){ await speak(c.kn, true, 0.72);  if(!drilling) break;
+                  await sleep(650);               if(!drilling) break; }
+    await speak(c.kn, true, 0.95);                if(!drilling) break;
+    await sleep(1500);
+  }
+  if(drilling){
+    $("#d-en").innerHTML = "おしまい — session complete.";
+    $("#d-ja").textContent = ""; $("#d-kn").textContent = "";
+  }
+  drilling = false;
+  const go = $("#d-go"); if(go) go.disabled = !drillSel().length;
+}
+
 /* =====================================================================
    設定
    ===================================================================== */
@@ -2939,6 +3477,13 @@ function renderSettings(){
     anywhere in the data, so for that range use the JLPT chips — N3 and N2
     overlap it closely.
   </div>
+  <div class="note">
+    <b>iPhone の読み上げについて</b> — Apple の Kyoko は、かな一語の中に切れ目を
+    見つけると連濁を起こすことがあります（…つき → …づき）。Google の日本語音声では
+    起きません。直したい語は、ファイル内の <b>SAY_FIX</b> に
+    「かな」→「読ませたいかな（すきまを入れる）」で足せます。
+    上の音声メニューで <b>Otoya</b> など別の日本語音声を選ぶと直ることもあります。
+  </div>
   ${canStore ? "" : `<div class="note" style="border-color:var(--akane)">⚠ This browser is blocking local storage, so ★ marks and settings won't survive a reload. Private/Incognito mode is the usual cause.</div>`}`;
   $("#s-jv").onchange = e => { S.cfg.jvURI = e.target.value; save(); pickVoices(); };
   $("#s-ev").onchange = e => { S.cfg.evURI = e.target.value; save(); pickVoices(); };
@@ -2956,7 +3501,8 @@ function renderSettings(){
    document in place, and a top-level `const` here would collide with the
    same `const` left behind by the outgoing copy — which killed the whole
    script and left a blank page. One deliberate window property instead. */
-window.__ito = { WORDS, VERBS, GRAM, conjugate, FORMS, S, SPOKEN,
+window.__ito = { WORDS, VERBS, GRAM, DRILL, conjugate, FORMS, S, SPOKEN, SAY_FIX,
+                 DF, drillSel, drillTags, get drilling(){ return drilling; },
                  VF, BF, GF, vocabSel, vocabCards, verbSel, verbCards,
                  gramSel, gramCards, setTab,
                  get FQ(){ return FQ; }, get FI(){ return FI; },
@@ -2980,7 +3526,7 @@ ensureVoices().then(() => { if(noJa && TAB !== "set") setTab(TAB); });
    plus the new ?v= URL make a reload loop impossible.
    Same origin either way, so localStorage/★ marks are untouched.
    Bump APPV each release. */
-(function(){var APPV="2026.08.30-6";
+(function(){var APPV="2026.09.06-1";
 try{if(sessionStorage.getItem("itoUpd")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
