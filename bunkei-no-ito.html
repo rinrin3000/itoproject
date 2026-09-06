@@ -71,6 +71,13 @@ main{padding:18px 16px;max-width:560px;margin:0 auto}
 <main id="main"></main>
 
 <script>
+/* Wrapped in an IIFE so that NOTHING is declared in the global lexical scope.
+   The auto-updater can swap this document in place, and document.open() keeps
+   the SAME window — a top-level `const` here would collide with the one left
+   behind by the outgoing copy, kill the script, and leave a blank page.
+   Nothing else about this file's behaviour changes: same storage key, same
+   schema, same SM-2-lite scheduling. */
+(function(){
 /* =====================================================================
    ==================  DECK — EDITABLE CONTENT SECTION  =================
    =====================================================================
@@ -536,19 +543,27 @@ function backupNote(){
   if(days!==null&&days<10)return"";
   return `<div class="note" style="border-color:var(--akane)">🧵 <b>バックアップのすすめ</b> — progress lives only in this browser. Copy it somewhere safe: 設定 → 進捗をコピー. ${days===null?"(You've never backed up.)":`(Last backup: ${days} days ago.)`}</div>`}
 
+/* one deliberate window property, for debugging and for the 糸。 hub's
+   backup screen to sanity-check against. Nothing reads it at runtime. */
+window.__bunkei = { DECK, get S(){ return S; }, stateOf, dueIds, maturity };
 setTab("rev");
+})();
 </script>
 <script>
 /* auto-updater: iOS home-screen apps cache HTML hard. On launch, fetch a fresh
-   copy (cache-bypassed); if its version differs, hot-swap the document in place.
-   Same-origin, so localStorage/SRS progress is untouched. Bump APPV each release. */
-(function(){var APPV="2026.08.30-4";
-try{if(sessionStorage.getItem("itoUpd")===APPV)return;}catch(e){}
+   copy (cache-bypassed); if the server's APPV differs, load the fresh copy.
+   We navigate rather than document.write() — document.open() reuses the same
+   window, so the outgoing copy's declarations survive and the incoming one
+   dies on "already been declared". Own sessionStorage key so a version string
+   set by a sibling app can never mask an update here.
+   Same origin either way, so localStorage/SRS progress is untouched. */
+(function(){var APPV="2026.09.06-1";
+try{if(sessionStorage.getItem("itoUpdBunkei")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
  .then(function(t){var m=t&&t.match(/APPV="([^"]+)"/);
-   if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpd",m[1]);}catch(e){}
-     document.open();document.write(t);document.close();}})
+   if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpdBunkei",m[1]);}catch(e){}
+     location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}})
  .catch(function(){});})();
 </script>
 </body>

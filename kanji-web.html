@@ -293,6 +293,11 @@ main{max-width:760px;margin:0 auto;padding:14px 16px calc(var(--ad-gap) + 48px +
 </div>
 
 <script>
+/* Wrapped in an IIFE so nothing is declared in the global lexical scope: the
+   updater can replace this document in place, and document.open() reuses the
+   same window, so a top-level `const` here would collide with the outgoing
+   copy's and blank the page. Behaviour is otherwise unchanged. */
+(function(){
 /* word|reading|meaning|lesson|jlpt  — MnN Shokyuu I & II (L1–50) + JLPT N5–N1 */
 const WORDS_RAW = [
 "医者|いしゃ|[medical] doctor|1|5","学生|がくせい|student|1|5","歳|さい|－ years old|1|5","先生|せんせい|teacher|1|5",
@@ -3371,20 +3376,23 @@ $("sortRow").addEventListener("click", e=>{
 window.addEventListener("resize", ()=>drawThreads());
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>drawThreads());
 
+window.__kanji = { KANJI, WORDS, KANJI_RAW };   /* debug handle only */
 rebuild();
 renderIndex();
+})();
 </script>
 <script>
 /* auto-updater: iOS home-screen apps cache HTML hard. On launch, fetch a fresh
-   copy (cache-bypassed); if its version differs, hot-swap the document in place.
-   Same-origin, so localStorage/SRS progress is untouched. Bump APPV each release. */
-(function(){var APPV="2026.08.30-1";
-try{if(sessionStorage.getItem("itoUpd")===APPV)return;}catch(e){}
+   copy (cache-bypassed); if the server's APPV differs, load the fresh copy.
+   We navigate rather than document.write(); own sessionStorage key so a sibling
+   app's version string can't mask an update here. Bump APPV each release. */
+(function(){var APPV="2026.09.06-1";
+try{if(sessionStorage.getItem("itoUpdKanji")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
  .then(function(t){var m=t&&t.match(/APPV="([^"]+)"/);
-   if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpd",m[1]);}catch(e){}
-     document.open();document.write(t);document.close();}})
+   if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpdKanji",m[1]);}catch(e){}
+     location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}})
  .catch(function(){});})();
 </script>
 </body>

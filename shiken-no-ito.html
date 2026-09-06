@@ -2840,6 +2840,13 @@ function setTab(t){
   window.scrollTo(0,0);
 }
 ["vocab","verb","gram","drill","set"].forEach(x => $("#tab-"+x).onclick = () => setTab(x));
+function backupNudge(){
+  const n = Object.keys(S.star).length;
+  if(n < 12) return "";
+  const days = S.lastBackup ? Math.floor((Date.now() - S.lastBackup)/864e5) : null;
+  if(days !== null && days < 14) return "";
+  return `<div class="note" style="border-color:var(--akane)">🧵 <b>バックアップのすすめ</b> — your ${n} ★ live only in this browser. 設定 → ★ をコピー. ${days===null?"(Never backed up.)":`(Last backup: ${days} days ago.)`}</div>`;
+}
 function paintPill(){
   const n = Object.keys(S.star).length;
   $("#hpill").textContent = n ? `★ ${n}` : `${WORDS.length + VERBS.length + GRAM.length}枚`;
@@ -2874,7 +2881,7 @@ function renderVocab(){
   const SHO = RB("初級","しょきゅう");
   const lv = [{labelH:SHO+"I（L1–25）",k:"s1"},{labelH:SHO+"II（L26–50）",k:"s2"}];
   const ns = [5,4,3,2,1];
-  m.innerHTML = (noJa ? jaWarnHTML() : "") + `
+  m.innerHTML = (noJa ? jaWarnHTML() : "") + backupNudge() + `
   <p class="hint">Pick a slice of the word list, then flip through it. Nothing here is scheduled — it's a cram pile, not a queue.</p>
   <div class="sec">みんなの${RB("日本語","にほんご")}</div>
   <div class="chips" id="v-lv">${lv.map(x=>`<button class="chip ${VF[x.k]?"on":""}" data-k="${x.k}">${x.labelH}</button>`).join("")}</div>
@@ -2979,7 +2986,7 @@ function verbSel(){
 }
 function renderVerb(){
   const m = $("#main");
-  m.innerHTML = (noJa ? jaWarnHTML() : "") + `
+  m.innerHTML = (noJa ? jaWarnHTML() : "") + backupNudge() + `
   <p class="hint">Pick verbs, pick forms, drill the cross-product. Group II verbs hiding behind an い-row stem are marked ⚠.</p>
   <div class="sec">グループ</div>
   <div class="chips" id="b-g">
@@ -3119,7 +3126,7 @@ function gramSel(){
 }
 function renderGram(){
   const m = $("#main");
-  m.innerHTML = (noJa ? jaWarnHTML() : "") + `
+  m.innerHTML = (noJa ? jaWarnHTML() : "") + backupNudge() + `
   <p class="hint">Patterns, and the contrasts that decide test questions. Every card carries one example and a note on what trips people up.</p>
   <div class="sec">レベル</div>
   <div class="chips" id="g-lv">
@@ -3299,9 +3306,11 @@ function drawDone(){
    the exercise; everything else is scaffolding. Scoped to whichever 課 you
    pick so nothing you haven't met yet can turn up.
    ===================================================================== */
-const DF = { lr:null, lrText:"", t:new Set(), q:"", gap:1, twice:true, order:"random" };
+const DF = { lr:null, lrText:"", t:new Set(), q:"", gap:1, twice:true, order:"random", star:false };
 let drilling = false, dPaused = false, dIdx = 0, dList = [];
+const dKey = c => "D:" + c.ja;
 function drillPass(c){
+  if(DF.star) return starred(dKey(c));          /* ★ overrides every other filter */
   if(DF.lr && !inRanges(c.l, DF.lr)) return false;
   if(DF.t.size && !DF.t.has(c.t)) return false;
   if(DF.q){ const q = DF.q.toLowerCase();
@@ -3323,7 +3332,7 @@ function drillTags(){
 function renderDrill(){
   const m = $("#main");
   const tags = drillTags();
-  m.innerHTML = (noJa ? jaWarnHTML() : "") + `
+  m.innerHTML = (noJa ? jaWarnHTML() : "") + backupNudge() + `
   <p class="hint">Hands-free. You hear the English, then a gap — say it out loud in Japanese — then the answer, slowly and then at speed. Put the phone down and talk.</p>
   <div class="sec">${RB("課","か")}をえらぶ</div>
   <div class="chips" id="d-quick">
@@ -3332,6 +3341,7 @@ function renderDrill(){
     <button class="chip sm" data-r="11-15">L11–15</button>
     <button class="chip sm" data-r="16-20">L16–20</button>
     <button class="chip sm" data-r="21-25">L21–25</button>
+    <button class="chip sm warn ${DF.star?"on":""}" data-star="1">★ キープだけ</button>
   </div>
   <input type="text" id="d-lr" placeholder="課（か） e.g. 16-20" value="${esc(DF.lrText)}" style="margin-top:9px">
   <div class="sec">${RB("文型","ぶんけい")}（${RB("選","えら")}ばなければ${RB("全部","ぜんぶ")}）</div>
@@ -3366,7 +3376,10 @@ function renderDrill(){
   $("#d-gap").value = String(DF.gap);
   $("#d-twice").value = DF.twice ? "1" : "0";
   $("#d-quick").querySelectorAll("button").forEach(b => b.onclick = ()=>{
-    DF.lrText = b.dataset.r; DF.lr = parseRanges(b.dataset.r, 25); DF.t = new Set(); dPaused = false; dList = []; dIdx = 0; renderDrill(); });
+    dPaused = false; dList = []; dIdx = 0;
+    if(b.dataset.star){ DF.star = !DF.star; }
+    else { DF.lrText = b.dataset.r; DF.lr = parseRanges(b.dataset.r, 25); DF.t = new Set(); DF.star = false; }
+    renderDrill(); });
   $("#d-lr").oninput = e => { DF.lrText = e.target.value; DF.lr = parseRanges(e.target.value, 25);
     DF.t = new Set(); dPaused = false; dList = []; dIdx = 0; renderDrill(); $("#d-lr").focus(); };
   $("#d-t").querySelectorAll("button").forEach(b => b.onclick = ()=>{
@@ -3394,7 +3407,9 @@ function paintDrill(){
     + (dPaused && dList.length ? ` ・ <span style="color:var(--kuchiba)">${dIdx+1}${RB("文目","ぶんめ")}で${RB("一時停止","いちじていし")}</span>` : "");
   paintDrillButtons();
   const l = $("#d-list");
-  if(!sel.length){ l.innerHTML = `<div class="empty">課をえらぶと文が出ます。</div>`; return; }
+  if(!sel.length){ l.innerHTML = `<div class="empty">${DF.star
+    ? "★ をつけた文がまだありません。<br>下のリストの ★ をタップして集めてください。"
+    : "課をえらぶと文が出ます。"}</div>`; return; }
   const byL = {};
   sel.forEach(c => (byL[c.l] ??= []).push(c));
   l.innerHTML = Object.keys(byL).sort((a,b)=>a-b).map(k =>
@@ -3404,7 +3419,8 @@ function paintDrill(){
         <div class="lk">${esc(c.kn)}</div>
         <div class="lm">${esc(c.en)}</div></div>
         <div class="rgt"><div><span class="tag">${esc(c.t)}</span></div>
-        <div><button class="mini" data-say="${esc(c.kn)}">▶</button></div></div></div>`).join("")).join("");
+        <div><button class="mini" data-say="${esc(c.kn)}">▶</button>
+        <button class="star ${starred(dKey(c))?"on":""}" data-star="${esc(dKey(c))}">★</button></div></div></div>`).join("")).join("");
   wireRows(l);
 }
 /* pause keeps dList and dIdx, so ▶ つづける picks the same sentence back up.
@@ -3484,9 +3500,21 @@ function renderSettings(){
     <button class="chip ${S.cfg.shuffle?"on":""}" id="s-shuf">シャッフル</button>
   </div>
   <div class="sec">キープ</div>
-  <div class="hint">★ marks cards you want to come back to. They survive re-uploads — the star list is keyed to the word itself, not to its position.</div>
+  <div class="hint">★ marks anything you want to come back to — words, verb forms, grammar points, drill sentences. Every tab has a ★ キープ filter that shows only those. The list is keyed to the item itself, not its position, so it survives updates.</div>
   <div class="chips" style="margin-top:10px">
-    <button class="chip" id="s-clear">★ を全部消す（${Object.keys(S.star).length}）</button>
+    <button class="chip" id="s-clear">★ ${RB("全部消","ぜんぶけ")}す（${Object.keys(S.star).length}）</button>
+  </div>
+  <div class="sec">バックアップ BACKUP</div>
+  <div class="chips">
+    <button class="chip" id="s-exp">★ ${RB("をコピー","")}</button>
+    <button class="chip" id="s-imp">★ ${RB("を貼","をは")}り${RB("付","つ")}け</button>
+    <button class="chip" id="s-help">❓ ${RB("端末間","たんまつかん")}の${RB("移動","いどう")}</button>
+  </div>
+  <div class="note" id="s-helpbox" style="display:none">
+    <b>📲 Move your ★ list to another device — 30 seconds:</b><br>
+    1. On your <b>old</b> device: tap <b>★ をコピー</b> — the list is copied as text. Send it to yourself (message, email, notes app… anywhere).<br>
+    2. On your <b>new</b> device: open this same site → 設定 → tap <b>★ を貼り付け</b> → paste → done.<br>
+    <span style="color:var(--dim)">Pasting MERGES with whatever is already starred here, so you can't wipe a list by importing an old one. 試験の糸 keeps no schedule — the ★ list and your voice settings are the only things worth saving. Your 文型の糸 SRS progress is separate and is backed up from inside that app (or from 糸。, the home page, which can save both at once).</span>
   </div>
   <div class="note">
     <b>試験の糸</b> is the cram half of the site: pick a slice, flip it, forget it.
@@ -3517,6 +3545,30 @@ function renderSettings(){
   $("#s-auto").onclick = e => { S.cfg.autoplay = !S.cfg.autoplay; save(); e.target.classList.toggle("on"); };
   $("#s-shuf").onclick = e => { S.cfg.shuffle = !S.cfg.shuffle; save(); e.target.classList.toggle("on"); };
   $("#s-clear").onclick = () => { if(confirm("★ marks will be cleared. Continue?")){ S.star = {}; save(); renderSettings(); paintPill(); } };
+  $("#s-help").onclick = () => { const h = $("#s-helpbox");
+    h.style.display = h.style.display === "none" ? "block" : "none"; };
+  $("#s-exp").onclick = async () => {
+    const n = Object.keys(S.star).length;
+    if(!n) return alert("★ をつけたものがまだありません。Nothing starred yet.");
+    const t = JSON.stringify({ app:"shiken", star:S.star, cfg:S.cfg });
+    S.lastBackup = Date.now(); save();
+    try{ await navigator.clipboard.writeText(t); alert(`コピーしました！ ${n} starred items copied.`); }
+    catch(e){ prompt("Copy this:", t); }
+    renderSettings();
+  };
+  $("#s-imp").onclick = () => {
+    const t = prompt("Paste your saved ★ list:");
+    if(!t) return;
+    try{
+      const p = JSON.parse(t);
+      if(!p || !p.star) return alert("形式が違うみたいです。That doesn't look like a 試験の糸 backup.");
+      const before = Object.keys(S.star).length;
+      Object.assign(S.star, p.star);            /* merge, never replace */
+      if(p.cfg){ S.cfg.jvURI = p.cfg.jvURI ?? S.cfg.jvURI; S.cfg.evURI = p.cfg.evURI ?? S.cfg.evURI; }
+      save(); paintPill(); renderSettings();
+      alert(`復元しました！ ${Object.keys(S.star).length - before} added, ${Object.keys(S.star).length} total.`);
+    }catch(e){ alert("読み込めませんでした。Couldn't read that."); }
+  };
 }
 
 /* ================= boot ================= */
@@ -3526,7 +3578,7 @@ function renderSettings(){
    same `const` left behind by the outgoing copy — which killed the whole
    script and left a blank page. One deliberate window property instead. */
 window.__ito = { WORDS, VERBS, GRAM, DRILL, conjugate, FORMS, S, SPOKEN, SAY_FIX,
-                 DF, drillSel, drillTags, get drilling(){ return drilling; },
+                 DF, drillSel, drillTags, dKey, get drilling(){ return drilling; },
                  get dPaused(){ return dPaused; }, get dIdx(){ return dIdx; },
                  VF, BF, GF, vocabSel, vocabCards, verbSel, verbCards,
                  gramSel, gramCards, setTab,
@@ -3551,12 +3603,12 @@ ensureVoices().then(() => { if(noJa && TAB !== "set") setTab(TAB); });
    plus the new ?v= URL make a reload loop impossible.
    Same origin either way, so localStorage/★ marks are untouched.
    Bump APPV each release. */
-(function(){var APPV="2026.09.06-2";
-try{if(sessionStorage.getItem("itoUpd")===APPV)return;}catch(e){}
+(function(){var APPV="2026.09.06-4";
+try{if(sessionStorage.getItem("itoUpdShiken")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
  .then(function(t){var m=t&&t.match(/APPV="([^"]+)"/);
-   if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpd",m[1]);}catch(e){}
+   if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpdShiken",m[1]);}catch(e){}
      location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}})
  .catch(function(){});})();
 </script>
