@@ -3311,7 +3311,7 @@ function drawDone(){
    pick so nothing you haven't met yet can turn up.
    ===================================================================== */
 const DF = { lr:null, lrText:"", t:new Set(), q:"", gap:1, twice:true, order:"random", star:false };
-let drilling = false, dPaused = false, dIdx = 0, dList = [];
+let drilling = false, dPaused = false, dSkip = false, dIdx = 0, dList = [];
 const dKey = c => "D:" + c.ja;
 function drillPass(c){
   if(DF.star) return starred(dKey(c));          /* ★ overrides every other filter */
@@ -3364,12 +3364,17 @@ function renderDrill(){
       <option value="0">ふつうだけ（normal only）</option>
     </select>
   </div>
+  <div class="chips" style="margin-top:9px">
+    <button class="chip sm ${DF.order==="random"?"on":""}" id="d-shuf">🔀 シャッフル</button>
+    <button class="chip sm ${DF.order!=="random"?"on":""}" id="d-inorder">${RB("課","か")}のじゅん</button>
+  </div>
   <input type="search" id="d-q" placeholder="検索（けんさく） — 文型・例文・English" value="${esc(DF.q)}" style="margin-top:8px">
   <div class="count" id="d-count"></div>
   <div class="gorow">
     <button class="go" id="d-go">▶ はじめる</button>
-    <button class="alt" id="d-pause">⏸</button>
-    <button class="alt" id="d-stop">■ さいしょから</button>
+    <button class="alt" id="d-pause" title="一時停止">⏸</button>
+    <button class="alt" id="d-skip" title="この文をとばす">⏭</button>
+    <button class="alt" id="d-stop" title="さいしょから">↺</button>
   </div>
   <div class="drillbox">
     <button class="dstar" id="d-star" style="display:none" title="この文を★に入れる">★</button>
@@ -3391,9 +3396,12 @@ function renderDrill(){
     const t = b.dataset.t; DF.t.has(t) ? DF.t.delete(t) : DF.t.add(t); dPaused = false; dList = []; dIdx = 0; renderDrill(); });
   $("#d-q").oninput = e => { DF.q = e.target.value.trim(); paintDrill(); };
   $("#d-gap").onchange = e => { DF.gap = parseFloat(e.target.value); };
+  $("#d-shuf").onclick    = () => { DF.order = "random"; dPaused=false; dList=[]; dIdx=0; renderDrill(); };
+  $("#d-inorder").onclick = () => { DF.order = "lesson"; dPaused=false; dList=[]; dIdx=0; renderDrill(); };
   $("#d-twice").onchange = e => { DF.twice = e.target.value === "1"; };
   $("#d-go").onclick = startDrill;
   $("#d-pause").onclick = pauseDrill;
+  $("#d-skip").onclick = skipDrill;
   $("#d-stop").onclick = resetDrill;
   paintDrill();
 }
@@ -3403,6 +3411,8 @@ function paintDrillButtons(){
   go.innerHTML = dPaused ? `▶ つづける` : `▶ はじめる`;
   go.disabled = drilling || !drillSel().length;
   if(pz) pz.disabled = !drilling;
+  const sk = $("#d-skip");
+  if(sk) sk.disabled = !drilling && !(dPaused && dIdx < dList.length - 1);
 }
 function paintDrill(){
   const sel = drillSel();
@@ -3454,7 +3464,7 @@ function pauseDrill(){
   paintDrillStar(dList[dIdx]);   /* stays on the held sentence */
 }
 function resetDrill(){
-  drilling = false; dPaused = false; dIdx = 0; dList = [];
+  drilling = false; dPaused = false; dSkip = false; dIdx = 0; dList = [];
   try{ speechSynthesis.cancel(); }catch(e){}
   const en = $("#d-en"); if(en) en.textContent = "…";
   const ja = $("#d-ja"); if(ja){ ja.textContent = ""; ja.classList.remove("shown"); }
@@ -3462,30 +3472,55 @@ function resetDrill(){
   paintDrillStar(null);
   paintDrill();
 }
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+/* a sleep that gives up early when you skip or pause — otherwise ⏭ during the
+   thinking gap would sit there for the rest of the gap before moving on */
+function waitMs(ms){
+  return new Promise(res => {
+    const t0 = Date.now();
+    const iv = setInterval(() => {
+      if(!drilling || dSkip || Date.now() - t0 >= ms){ clearInterval(iv); res(); }
+    }, 60);
+  });
+}
+/* ⏭ — already know this one, move on. Mid-run it aborts the rest of the
+   sentence; while paused it just steps the held position forward. */
+function skipDrill(){
+  if(drilling){ dSkip = true; try{ speechSynthesis.cancel(); }catch(e){} return; }
+  if(dPaused && dIdx < dList.length - 1){
+    dIdx++;
+    const en = $("#d-en");
+    if(en) en.innerHTML = `⏸ ${RB("一時停止","いちじていし")} — ${dIdx+1}/${dList.length}`;
+    $("#d-ja").textContent = ""; $("#d-ja").classList.remove("shown");
+    $("#d-kn").textContent = "";
+    paintDrill(); paintDrillStar(dList[dIdx]);
+  }
+}
 async function startDrill(){
   if(drilling) return;
-  if(!dPaused || !dList.length){ dList = drillSel(); dIdx = 0; }   /* fresh run */
+  /* a fresh run ALWAYS rebuilds the list, which reshuffles when シャッフル is
+     on. Only ▶ つづける keeps the existing order and position. */
+  if(!dPaused || !dList.length){ dList = drillSel(); dIdx = 0; }
   if(!dList.length) return;
-  drilling = true; dPaused = false; unlock();
+  drilling = true; dPaused = false; dSkip = false; unlock();
   paintDrillButtons();
   for(; dIdx < dList.length; dIdx++){
     const c = dList[dIdx], i = dIdx;
     if(!drilling) break;
+    dSkip = false;
     /* gap scales with the length of what you have to produce */
     const gap = (2100 + c.kn.length * 135) * DF.gap;
     $("#d-en").innerHTML = `<span class="pulse"></span><span class="dnum">${i+1}/${dList.length}</span> ${esc(c.en)}`;
     paintDrillStar(c);
     $("#d-ja").textContent = ""; $("#d-ja").classList.remove("shown");
     $("#d-kn").textContent = "";
-    await speak(c.en, false);                     if(!drilling) break;
-    await sleep(gap);                             if(!drilling) break;
+    await speak(c.en, false);       if(!drilling) break;  if(dSkip) continue;
+    await waitMs(gap);              if(!drilling) break;  if(dSkip) continue;
     $("#d-ja").textContent = c.ja; $("#d-ja").classList.add("shown");
     $("#d-kn").textContent = c.kn;
-    if(DF.twice){ await speak(c.kn, true, 0.72);  if(!drilling) break;
-                  await sleep(650);               if(!drilling) break; }
-    await speak(c.kn, true, 0.95);                if(!drilling) break;
-    await sleep(1500);
+    if(DF.twice){ await speak(c.kn, true, 0.72);  if(!drilling) break;  if(dSkip) continue;
+                  await waitMs(650);              if(!drilling) break;  if(dSkip) continue; }
+    await speak(c.kn, true, 0.95);  if(!drilling) break;  if(dSkip) continue;
+    await waitMs(1500);
   }
   if(drilling){                       /* ran to the end rather than paused */
     $("#d-en").innerHTML = "おしまい — session complete.";
@@ -3600,7 +3635,8 @@ function renderSettings(){
    same `const` left behind by the outgoing copy — which killed the whole
    script and left a blank page. One deliberate window property instead. */
 window.__ito = { WORDS, VERBS, GRAM, DRILL, conjugate, FORMS, S, SPOKEN, SAY_FIX,
-                 DF, drillSel, drillTags, dKey, paintDrillStar, get drilling(){ return drilling; },
+                 DF, drillSel, drillTags, dKey, paintDrillStar, skipDrill,
+                 get dList(){ return dList; }, get drilling(){ return drilling; },
                  get dPaused(){ return dPaused; }, get dIdx(){ return dIdx; },
                  VF, BF, GF, vocabSel, vocabCards, verbSel, verbCards,
                  gramSel, gramCards, setTab,
@@ -3625,7 +3661,7 @@ ensureVoices().then(() => { if(noJa && TAB !== "set") setTab(TAB); });
    plus the new ?v= URL make a reload loop impossible.
    Same origin either way, so localStorage/★ marks are untouched.
    Bump APPV each release. */
-(function(){var APPV="2026.09.06-5";
+(function(){var APPV="2026.09.06-6";
 try{if(sessionStorage.getItem("itoUpdShiken")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
