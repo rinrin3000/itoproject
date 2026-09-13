@@ -6,7 +6,7 @@
 <title>漢字の糸 — Kanji Web</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --ad-gap:84px; /* clearance for hosting-service banners injected at the bottom */
@@ -25,11 +25,24 @@ body{
   background-image:linear-gradient(var(--thread-soft) 1px, transparent 1px);
   background-size:100% 44px; background-attachment:fixed;
 }
-.jp{font-family:"Shippori Mincho B1","Zen Kaku Gothic New",serif}
+.jp{font-family:var(--jpface),"Zen Kaku Gothic New",serif}
+/* three faces for Japanese text. 明朝 is the original; 教科書体 (Klee One) is the
+   soft pen-drawn shape used in school textbooks and is what most learners have
+   actually seen their kanji in; 丸ゴシック is rounded and easiest on the eye. */
+:root{--jpface:"Shippori Mincho B1"}
+body.face-kyo{--jpface:"Klee One"}
+body.face-maru{--jpface:"Zen Maru Gothic"}
+body.face-kyo .jp{font-weight:600}
+#faceBtn{min-width:44px;font-family:var(--jpface),serif}
+.facetoast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:9998;
+  background:var(--card);border:1px solid var(--line,#2e3949);color:var(--ink);
+  padding:9px 16px;border-radius:999px;font-size:.82rem;opacity:0;transition:opacity .25s;
+  pointer-events:none;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.facetoast.show{opacity:1}
 
 header{padding:calc(14px + env(safe-area-inset-top)) 16px 10px;max-width:760px;margin:0 auto}
 .masthead{display:flex;align-items:baseline;gap:10px;cursor:pointer;user-select:none}
-.masthead h1{font-family:"Shippori Mincho B1",serif;font-weight:800;font-size:1.35rem;letter-spacing:.04em}
+.masthead h1{font-family:var(--jpface),serif;font-weight:800;font-size:1.35rem;letter-spacing:.04em}
 .masthead .sub{font-size:.72rem;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
 .stats{font-size:.72rem;color:var(--muted);margin-top:2px}
 .searchrow{margin-top:12px;display:flex;gap:8px}
@@ -56,7 +69,7 @@ header{padding:calc(14px + env(safe-area-inset-top)) 16px 10px;max-width:760px;m
 .trail:empty{display:none}
 .trail .hop{
   flex:none;width:40px;height:40px;border-radius:9px;border:1.5px solid var(--thread);
-  background:var(--card);font-family:"Shippori Mincho B1",serif;font-size:1.15rem;
+  background:var(--card);font-family:var(--jpface),serif;font-size:1.15rem;
   font-weight:700;color:var(--ink-soft);cursor:pointer;display:grid;place-items:center;
 }
 .trail .hop.current{background:var(--seal);border-color:var(--seal-deep);color:var(--paper)}
@@ -159,7 +172,12 @@ main{max-width:760px;margin:0 auto;padding:14px 16px calc(var(--ad-gap) + 48px +
 /* flashcards */
 .flash{position:fixed;inset:0;background:var(--paper);z-index:50;display:flex;flex-direction:column;
   padding:calc(14px + env(safe-area-inset-top)) 16px calc(var(--ad-gap) + 16px + env(safe-area-inset-bottom))}
-.flash-top{display:flex;align-items:center;gap:10px;max-width:560px;width:100%;margin:0 auto}
+.flash-top{display:flex;align-items:center;gap:10px;max-width:560px;width:100%;margin:0 auto;
+  padding-right:4px}
+/* the 糸。pill is position:fixed at the top-right with z-index 9999, so the
+   flashcard ✕ used to sit underneath it. Hide the pill while the deck is open —
+   it is a full-screen view and the hub link isn't reachable from here anyway. */
+body.flash-open #itoHome{display:none}
 .flash-top .spacer{flex:1;text-align:center;font-size:.8rem;color:var(--muted);font-weight:700}
 .flash-stage{flex:1;display:grid;place-items:center;max-width:560px;width:100%;margin:0 auto;perspective:1200px}
 .fc{width:100%;max-width:420px;aspect-ratio:5/6;position:relative;cursor:pointer;
@@ -194,7 +212,7 @@ main{max-width:760px;margin:0 auto;padding:14px 16px calc(var(--ad-gap) + 48px +
 </style>
 </head>
 <body>
-<a href="index.html" style="position:fixed;top:10px;right:12px;z-index:9999;text-decoration:none;font-family:'Shippori Mincho B1',serif;font-size:15px;color:#d4685e;background:rgba(18,22,31,.85);border:1px solid #2e3949;border-radius:999px;padding:5px 13px;backdrop-filter:blur(4px)" title="Back to the Ito hub">糸。</a>
+<a href="index.html" id="itoHome" style="position:fixed;top:10px;right:12px;z-index:9999;text-decoration:none;font-family:'Shippori Mincho B1',serif;font-size:15px;color:#d4685e;background:rgba(18,22,31,.85);border:1px solid #2e3949;border-radius:999px;padding:5px 13px;backdrop-filter:blur(4px)" title="Back to the Ito hub">糸。</a>
 
 <header>
   <div class="masthead" id="homeBtn" title="Back to all kanji">
@@ -207,6 +225,7 @@ main{max-width:760px;margin:0 auto;padding:14px 16px calc(var(--ad-gap) + 48px +
   <div class="searchrow">
     <button class="btn hidden" id="backBtn" title="Back one step">←</button>
     <input id="search" type="search" placeholder="Search kanji, reading, meaning, L11-12, N3…" autocomplete="off">
+    <button class="btn" id="faceBtn" title="Japanese typeface">あ</button>
     <button class="btn" id="allBtn">All</button>
   </div>
 </header>
@@ -268,7 +287,7 @@ main{max-width:760px;margin:0 auto;padding:14px 16px calc(var(--ad-gap) + 48px +
 
 <div class="flash hidden" id="flashView">
   <div class="flash-top">
-    <button class="btn" id="fShuf">⇄</button>
+    <button class="btn" id="fShuf" title="シャッフル — reshuffle this deck">🔀</button>
     <span class="spacer" id="fCount"></span>
     <button class="btn" id="fExit">✕</button>
   </div>
@@ -3279,6 +3298,7 @@ function startFlash(){
   if(flashDeck.length<2) return;
   flashOrder=[...flashDeck]; flashPos=0;
   $("flashView").classList.remove("hidden");
+  document.body.classList.add("flash-open");   /* hides the 糸。pill behind ✕ */
   document.body.style.overflow="hidden";
   showCard();
 }
@@ -3299,6 +3319,7 @@ function flashNext(d){
 }
 function exitFlash(){
   $("flashView").classList.add("hidden");
+  document.body.classList.remove("flash-open");
   document.body.style.overflow="";
 }
 $("flashBtn").onclick=startFlash;
@@ -3306,12 +3327,42 @@ $("fCard").onclick=()=>$("fCard").classList.toggle("flipped");
 $("fNext").onclick=()=>flashNext(1);
 $("fPrev").onclick=()=>flashNext(-1);
 $("fExit").onclick=exitFlash;
+/* ---------- Japanese typeface ---------- */
+const FACES=[
+  {k:"",        label:"明朝",     en:"Mincho — the original"},
+  {k:"face-kyo",label:"教科書体風", en:"Textbook style — soft pen strokes"},
+  {k:"face-maru",label:"丸ゴシック", en:"Rounded gothic — easiest to read"}
+];
+let faceIdx=0;
+try{ const sv=localStorage.getItem("kanji_face");
+     if(sv!==null){ const i=FACES.findIndex(f=>f.k===sv); if(i>=0) faceIdx=i; } }catch(e){}
+function applyFace(announce){
+  FACES.forEach(f=>{ if(f.k) document.body.classList.remove(f.k); });
+  const f=FACES[faceIdx];
+  if(f.k) document.body.classList.add(f.k);
+  const b=$("faceBtn"); if(b) b.textContent="あ";
+  try{ localStorage.setItem("kanji_face", f.k); }catch(e){}
+  if(announce){
+    let t=document.getElementById("faceToast");
+    if(!t){ t=document.createElement("div"); t.id="faceToast"; t.className="facetoast";
+            document.body.appendChild(t); }
+    t.textContent=f.label+" · "+f.en;
+    t.classList.add("show");
+    clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1600);
+  }
+}
+applyFace(false);
+$("faceBtn").onclick=()=>{ faceIdx=(faceIdx+1)%FACES.length; applyFace(true); };
+
 $("fShuf").onclick=()=>{
   for(let i=flashOrder.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
     [flashOrder[i],flashOrder[j]]=[flashOrder[j],flashOrder[i]];
   }
   flashPos=0; showCard();
+  const c=$("fCount");
+  if(c){ const was=c.textContent; c.textContent="シャッフルしました";
+         clearTimeout(c._h); c._h=setTimeout(()=>{ if(flashDeck.length) showCard(); else c.textContent=was; },900); }
 };
 document.addEventListener("keydown",e=>{
   if($("flashView").classList.contains("hidden")) return;
@@ -3386,7 +3437,7 @@ renderIndex();
    copy (cache-bypassed); if the server's APPV differs, load the fresh copy.
    We navigate rather than document.write(); own sessionStorage key so a sibling
    app's version string can't mask an update here. Bump APPV each release. */
-(function(){var APPV="2026.09.06-1";
+(function(){var APPV="2026.09.06-2";
 try{if(sessionStorage.getItem("itoUpdKanji")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
