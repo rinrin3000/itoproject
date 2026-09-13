@@ -33,7 +33,9 @@ body{
 body.face-kyo{--jpface:"Klee One"}
 body.face-maru{--jpface:"Zen Maru Gothic"}
 body.face-kyo .jp{font-weight:600}
-#faceBtn{min-width:44px;font-family:var(--jpface),serif}
+#faceBtn{display:inline-flex;align-items:center;gap:6px;padding:0 11px;white-space:nowrap}
+#faceBtn .fchar{font-family:var(--jpface),serif;font-size:1.15rem;line-height:1}
+#faceBtn .fname{font-size:.68rem;letter-spacing:.02em;opacity:.75}
 .facetoast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:9998;
   background:var(--card);border:1px solid var(--line,#2e3949);color:var(--ink);
   padding:9px 16px;border-radius:999px;font-size:.82rem;opacity:0;transition:opacity .25s;
@@ -115,14 +117,14 @@ main{max-width:760px;margin:0 auto;padding:14px 16px calc(var(--ad-gap) + 48px +
   align-items:center;justify-content:center;gap:1px;transition:transform .12s ease;
 }
 .kchip:active{transform:scale(.94)}
-.kchip .k{font-family:"Shippori Mincho B1",serif;font-size:1.6rem;font-weight:700;line-height:1}
+.kchip .k{font-family:var(--jpface),serif;font-size:1.6rem;font-weight:700;line-height:1}
 .kchip .n{font-size:.6rem;color:var(--muted)}
 .wordhit{
   border:1.5px solid var(--thread);background:var(--card);border-radius:var(--radius);
   padding:10px 12px;margin-bottom:8px;cursor:pointer;
   display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
 }
-.wordhit .w{font-family:"Shippori Mincho B1",serif;font-size:1.15rem;font-weight:700}
+.wordhit .w{font-family:var(--jpface),serif;font-size:1.15rem;font-weight:700}
 .wordhit .r{color:var(--seal);font-size:.85rem}
 .wordhit .m{color:var(--muted);font-size:.85rem}
 .tag{font-size:.65rem;border-radius:6px;padding:1px 5px;align-self:center}
@@ -138,7 +140,7 @@ main{max-width:760px;margin:0 auto;padding:14px 16px calc(var(--ad-gap) + 48px +
 .seal-wrap{position:absolute;left:0;top:6px;width:88px;text-align:center}
 .seal{
   width:84px;height:84px;border-radius:12px;background:var(--seal);color:var(--paper);
-  display:grid;place-items:center;font-family:"Shippori Mincho B1",serif;
+  display:grid;place-items:center;font-family:var(--jpface),serif;
   font-size:3.1rem;font-weight:700;box-shadow:0 3px 0 var(--seal-deep);transform:rotate(-1.5deg);
 }
 .seal-reading{margin-top:8px;font-size:.78rem;color:var(--ink-soft);font-weight:700;line-height:1.35}
@@ -149,7 +151,7 @@ main{max-width:760px;margin:0 auto;padding:14px 16px calc(var(--ad-gap) + 48px +
 .card .chars{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
 .chr{
   min-width:36px;height:38px;padding:0 6px;border-radius:8px;display:grid;place-items:center;
-  font-family:"Shippori Mincho B1",serif;font-size:1.35rem;font-weight:700;line-height:1;
+  font-family:var(--jpface),serif;font-size:1.35rem;font-weight:700;line-height:1;
 }
 .chr.kana{color:var(--ink-soft);background:transparent;min-width:22px;padding:0 2px}
 .chr.kfocus{background:var(--seal);color:var(--paper)}
@@ -166,7 +168,7 @@ main{max-width:760px;margin:0 auto;padding:14px 16px calc(var(--ad-gap) + 48px +
   border:1.5px solid var(--thread);background:var(--card);border-radius:var(--radius);
   padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px;
 }
-.relchip .k{font-family:"Shippori Mincho B1",serif;font-size:1.25rem;font-weight:700}
+.relchip .k{font-family:var(--jpface),serif;font-size:1.25rem;font-weight:700}
 .relchip .c{font-size:.68rem;color:var(--muted)}
 
 /* flashcards */
@@ -188,9 +190,9 @@ body.flash-open #itoHome{display:none}
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
   padding:22px;text-align:center;box-shadow:0 4px 0 var(--thread-soft)}
 .fface.back{transform:rotateY(180deg)}
-.fc-word{font-family:"Shippori Mincho B1",serif;font-weight:700;font-size:2.6rem;line-height:1.25;word-break:keep-all}
+.fc-word{font-family:var(--jpface),serif;font-weight:700;font-size:2.6rem;line-height:1.25;word-break:keep-all}
 .fc-word.long{font-size:1.9rem}
-.fc-read{color:var(--seal);font-size:1.4rem;font-weight:700}
+.fc-read{color:var(--seal);font-size:1.4rem;font-weight:700;font-family:var(--jpface),serif}
 .fc-mean{color:var(--ink-soft);font-size:1.05rem;line-height:1.5}
 .fc-tags{display:flex;gap:6px}
 .fc-hint{font-size:.7rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
@@ -212,7 +214,7 @@ body.flash-open #itoHome{display:none}
 </style>
 </head>
 <body>
-<a href="index.html" id="itoHome" style="position:fixed;top:10px;right:12px;z-index:9999;text-decoration:none;font-family:'Shippori Mincho B1',serif;font-size:15px;color:#d4685e;background:rgba(18,22,31,.85);border:1px solid #2e3949;border-radius:999px;padding:5px 13px;backdrop-filter:blur(4px)" title="Back to the Ito hub">糸。</a>
+<a href="index.html" id="itoHome" style="position:fixed;top:10px;right:12px;z-index:9999;text-decoration:none;font-family:var(--jpface),serif;font-size:15px;color:#d4685e;background:rgba(18,22,31,.85);border:1px solid #2e3949;border-radius:999px;padding:5px 13px;backdrop-filter:blur(4px)" title="Back to the Ito hub">糸。</a>
 
 <header>
   <div class="masthead" id="homeBtn" title="Back to all kanji">
@@ -225,7 +227,7 @@ body.flash-open #itoHome{display:none}
   <div class="searchrow">
     <button class="btn hidden" id="backBtn" title="Back one step">←</button>
     <input id="search" type="search" placeholder="Search kanji, reading, meaning, L11-12, N3…" autocomplete="off">
-    <button class="btn" id="faceBtn" title="Japanese typeface">あ</button>
+    <button class="btn" id="faceBtn" title="書体を変える — change the Japanese typeface"><span class="fchar">あ</span><span class="fname">明朝</span></button>
     <button class="btn" id="allBtn">All</button>
   </div>
 </header>
@@ -3329,9 +3331,9 @@ $("fPrev").onclick=()=>flashNext(-1);
 $("fExit").onclick=exitFlash;
 /* ---------- Japanese typeface ---------- */
 const FACES=[
-  {k:"",        label:"明朝",     en:"Mincho — the original"},
-  {k:"face-kyo",label:"教科書体風", en:"Textbook style — soft pen strokes"},
-  {k:"face-maru",label:"丸ゴシック", en:"Rounded gothic — easiest to read"}
+  {k:"",         short:"明朝",   label:"明朝",     en:"Mincho — the original"},
+  {k:"face-kyo", short:"教科書", label:"教科書体風", en:"Textbook style — soft pen strokes"},
+  {k:"face-maru",short:"丸ゴ",   label:"丸ゴシック", en:"Rounded gothic — easiest to read"}
 ];
 let faceIdx=0;
 try{ const sv=localStorage.getItem("kanji_face");
@@ -3340,7 +3342,11 @@ function applyFace(announce){
   FACES.forEach(f=>{ if(f.k) document.body.classList.remove(f.k); });
   const f=FACES[faceIdx];
   if(f.k) document.body.classList.add(f.k);
-  const b=$("faceBtn"); if(b) b.textContent="あ";
+  /* the あ renders in the live face (so the button previews it) and the
+     caption names it — otherwise it reads as a stray hiragana button */
+  const b=$("faceBtn");
+  if(b){ const n=b.querySelector(".fname"); if(n) n.textContent=f.short;
+         b.title="書体："+f.label+" — tap to change ("+f.en+")"; }
   try{ localStorage.setItem("kanji_face", f.k); }catch(e){}
   if(announce){
     let t=document.getElementById("faceToast");
@@ -3437,7 +3443,7 @@ renderIndex();
    copy (cache-bypassed); if the server's APPV differs, load the fresh copy.
    We navigate rather than document.write(); own sessionStorage key so a sibling
    app's version string can't mask an update here. Bump APPV each release. */
-(function(){var APPV="2026.09.06-2";
+(function(){var APPV="2026.09.13-1";
 try{if(sessionStorage.getItem("itoUpdKanji")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
