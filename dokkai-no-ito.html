@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>読解の糸 — Reading Threads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12161f; --card:#1b222e; --card2:#232c3a; --line:#2e3949;
+  --thread:#e8e0ce; --ai:#7d9cc9; --akane:#d4685e; --moegi:#93b06b;
+  --kuchiba:#c9b370; --dim:#8b95a5; --ad-gap:90px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--ink);color:var(--thread);font-family:'Noto Sans JP',sans-serif;min-height:100vh;padding-bottom:var(--ad-gap)}
+header{padding:18px 16px 10px;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line)}
+h1{font-family:'Shippori Mincho B1',serif;font-size:22px;font-weight:700;letter-spacing:.06em}
+h1 span{color:var(--akane)}
+.hpill{font-size:12px;color:var(--ink);background:var(--thread);border-radius:999px;padding:3px 10px;font-weight:700}
+.hlink{text-decoration:none;font-family:'Shippori Mincho B1',serif;font-size:15px;color:var(--akane);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+nav{display:flex;border-bottom:1px solid var(--line)}
+nav button{flex:1;background:none;border:none;color:var(--dim);font-family:inherit;font-size:14px;font-weight:500;padding:12px 0;border-bottom:2px solid transparent}
+nav button.on{color:var(--thread);border-bottom-color:var(--akane)}
+main{padding:16px;max-width:660px;margin:0 auto}
+.hint{color:var(--dim);font-size:13px;line-height:1.7}
+.sec{margin-top:20px;margin-bottom:8px;font-size:11px;color:var(--ai);letter-spacing:.18em}
+.sec:first-child{margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{background:var(--card2);border:1px solid var(--line);color:var(--thread);font-family:inherit;border-radius:999px;font-size:13px;padding:7px 13px;line-height:1.35}
+.chip.on{border-color:var(--akane);color:var(--akane);background:#2a1f22}
+select{background:var(--card2);border:1px solid var(--line);color:var(--thread);font-family:inherit;font-size:15px;padding:10px 13px;border-radius:10px;width:100%;-webkit-appearance:none}
+.note{background:var(--card);border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:var(--dim);line-height:1.75}
+.note b{color:var(--thread)}
+.empty{text-align:center;color:var(--dim);font-size:14px;margin-top:34px;line-height:2}
+ruby{ruby-position:over}
+rt{font-size:.52em;color:var(--dim);font-weight:400;letter-spacing:0;line-height:1;-webkit-user-select:none;user-select:none}
+nav button ruby rt{font-size:.55em}
+
+/* ---------- 本棚 level picker ---------- */
+.lvbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 12px}
+.lvtop{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.lvnum{font-family:'Shippori Mincho B1',serif;font-size:34px;line-height:1}
+.lvnum small{font-size:14px;color:var(--dim);margin-left:4px}
+.lvband{font-size:12px;color:var(--ai);text-align:right;line-height:1.5}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin-top:8px}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:99px}
+input[type=range]::-moz-range-track{height:4px;background:var(--line);border-radius:99px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--akane);margin-top:-10px;border:3px solid var(--ink)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--akane);border:3px solid var(--ink)}
+.ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);padding:0 4px}
+.stepr{display:flex;gap:6px;margin-top:8px}
+.stepr button{flex:1;background:var(--card2);border:1px solid var(--line);color:var(--thread);font-family:inherit;font-size:13px;padding:7px 0;border-radius:9px}
+
+.scard{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-top:8px;color:inherit;font-family:inherit}
+.scard:active{border-color:var(--akane)}
+.scard.fit{border-color:#4a3a3a}
+.scard.lock{opacity:.5}
+.scard .st{font-family:'Shippori Mincho B1',serif;font-size:20px;line-height:1.5}
+.scard .se{font-size:12.5px;color:var(--ai);margin-top:1px}
+.scard .sa{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.6}
+.scard .sm{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.tag{display:inline-block;font-size:10.5px;border-radius:4px;padding:1px 7px;border:1px solid var(--line);color:var(--dim)}
+.tag.lv{color:var(--akane);border-color:#5c3b38}
+.tag.dn{color:var(--moegi);border-color:#3f5230}
+.tag.bm{color:var(--kuchiba);border-color:#5c5130}
+
+/* ---------- reader ---------- */
+#rd{position:fixed;inset:0;background:var(--ink);z-index:50;display:none;flex-direction:column}
+#rd.on{display:flex}
+.rbar{display:flex;align-items:center;gap:8px;padding:12px 12px 10px;border-bottom:1px solid var(--line)}
+.rbar .x{background:none;border:none;color:var(--dim);font-size:20px;padding:0 6px;font-family:inherit}
+.rbar .rt{flex:1;min-width:0;font-family:'Shippori Mincho B1',serif;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rbar .tb{background:var(--card2);border:1px solid var(--line);color:var(--dim);font-family:inherit;font-size:12.5px;border-radius:999px;padding:5px 10px;white-space:nowrap}
+.rbar .tb.on{color:var(--akane);border-color:var(--akane)}
+#r-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.rwrap{max-width:660px;margin:0 auto;padding:18px 18px 120px}
+.rhead{margin-bottom:18px}
+.rhead .t{font-family:'Shippori Mincho B1',serif;font-size:27px;line-height:1.8}
+.rhead .e{font-size:13px;color:var(--ai)}
+.rhead .a{font-size:12.5px;color:var(--dim);line-height:1.7;margin-top:8px}
+.rhead .m{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.resume{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#2a2618;border:1px solid #5c5130;color:var(--kuchiba);border-radius:10px;padding:10px 13px;margin-bottom:16px;font-size:13px}
+.resume button{background:var(--kuchiba);color:var(--ink);border:none;border-radius:8px;padding:7px 12px;font-family:inherit;font-weight:700;font-size:13px}
+.para{margin-bottom:1.3em}
+.body{font-family:'Shippori Mincho B1',serif;font-size:var(--fs,21px);line-height:2.25;word-break:normal;line-break:strict}
+.ln{margin-bottom:.35em}
+.ln.dlg{display:flex;gap:.6em;align-items:baseline}
+.spk{flex:0 0 auto;font-family:'Noto Sans JP',sans-serif;font-size:.56em;color:var(--ai);border:1px solid var(--line);border-radius:6px;padding:0 .5em;line-height:1.9;position:relative;top:-.15em;white-space:nowrap}
+.spk rt{font-size:.6em}
+.spk.f{color:#d9a7a0}.spk.m{color:#8fb0d6}
+.sen{border-radius:6px;transition:background .25s;padding:1px 0;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.sen.now{background:rgba(212,104,94,.17)}
+.sen.cur{box-shadow:inset 0 -2px 0 rgba(212,104,94,.55)}
+.sen.bmk::before{content:"🔖";font-size:.6em;margin-right:.15em;position:relative;top:-.4em}
+.en{display:none;font-family:'Noto Sans JP',sans-serif;font-size:13px;line-height:1.6;color:var(--ai);margin:.1em 0 .6em}
+.en-on .sen,.sen.en1{display:block}
+.en-on .ln.dlg .sen{display:block}
+.en-on .en,.sen.en1 .en{display:block}
+.w,.p{cursor:pointer}
+/* hidden readings take no width (font-size 0), so 先週 doesn't sprout a gap where
+   せんしゅう would sit; revealing one word reflows only that word */
+.w rt{visibility:hidden;font-size:0}
+.furi-all .w rt,.w.show rt,.w.ex rt,.w.nm rt{visibility:visible;font-size:.5em}
+@media (hover:hover){ .w:hover rt{visibility:visible;font-size:.5em} .w:hover{color:#fff} }
+.w.ex{text-decoration:underline dotted var(--kuchiba);text-underline-offset:.32em;text-decoration-thickness:1px}
+.w.ex rt{color:var(--kuchiba)}
+.w.st{text-decoration:underline solid var(--kuchiba);text-underline-offset:.32em;text-decoration-thickness:2px}
+.w.tap,.p.tap{background:rgba(125,156,201,.22);border-radius:4px}
+.w.sel,.p.sel{background:rgba(201,179,112,.28)}
+.selbar{position:sticky;top:0;z-index:3;background:#2a2618;color:var(--kuchiba);border-bottom:1px solid #5c5130;font-size:13px;padding:9px 14px;display:none;justify-content:space-between;align-items:center;gap:10px}
+.selbar.on{display:flex}
+.selbar button{background:none;border:1px solid #5c5130;color:var(--kuchiba);border-radius:8px;padding:4px 10px;font-family:inherit;font-size:12px}
+.endbox{margin-top:30px;border-top:1px solid var(--line);padding-top:18px}
+.endbox .done{width:100%;background:var(--moegi);color:var(--ink);border:none;border-radius:12px;padding:14px;font-family:inherit;font-weight:700;font-size:15px}
+.endbox .done.was{background:var(--card2);color:var(--moegi);border:1px solid #3f5230}
+.glist{margin-top:16px}
+.glist .gi{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.glist .gw{font-family:'Shippori Mincho B1',serif;font-size:17px;flex:0 0 auto}
+.glist .gr{color:var(--dim);font-size:12px}
+.glist .gm{color:var(--ai);flex:1}
+.rctl{display:flex;align-items:center;gap:7px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--ink)}
+.rctl button{background:var(--card2);border:1px solid var(--line);color:var(--thread);font-family:inherit;border-radius:12px;font-size:18px;padding:11px 0;flex:1}
+.rctl button.play{flex:1.6;background:var(--akane);color:var(--ink);border:none;font-weight:700}
+.rctl button.sm{flex:0 0 auto;font-size:12.5px;padding:12px 10px;color:var(--dim)}
+.rctl button:disabled{opacity:.4}
+
+/* ---------- bottom sheet ---------- */
+#scrim{position:fixed;inset:0;z-index:60;background:rgba(8,10,14,.35);display:none}
+#scrim.on{display:block}
+#sheet{visibility:hidden;position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--card);border-top:1px solid var(--line);border-radius:16px 16px 0 0;
+  padding:14px 16px calc(16px + env(safe-area-inset-bottom));max-width:660px;margin:0 auto;transform:translateY(105%);transition:transform .22s ease;max-height:72vh;overflow-y:auto}
+#sheet.on{transform:none;visibility:visible}
+.sh-grip{width:38px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 12px}
+.sh-word{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.sh-w{font-family:'Shippori Mincho B1',serif;font-size:30px;line-height:1.5}
+.sh-w rt{visibility:visible}
+.sh-d{font-size:13px;color:var(--thread);margin-top:2px;line-height:1.6}
+.sh-d .k{color:var(--dim)}
+.sh-d .l{display:inline-block;font-size:10.5px;border:1px solid var(--line);border-radius:4px;padding:0 6px;margin-left:6px;color:var(--dim)}
+.sh-d .l.x{color:var(--kuchiba);border-color:#5c5130}
+.sh-sen{font-family:'Shippori Mincho B1',serif;font-size:16px;line-height:1.9;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
+.sh-en{font-size:13px;color:var(--ai);margin-top:4px;line-height:1.6}
+.sh-btns{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.sh-btns button{background:var(--card2);border:1px solid var(--line);color:var(--thread);font-family:inherit;border-radius:10px;font-size:13px;padding:9px 12px}
+.sh-btns button.on{color:var(--kuchiba);border-color:#5c5130}
+.sh-btns button.pri{background:var(--akane);color:var(--ink);border:none;font-weight:700}
+.sh-x{background:none;border:none;color:var(--dim);font-size:18px;padding:2px 4px}
+
+/* ---------- キープ ---------- */
+.krow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:7px}
+.krow .kl{flex:1;min-width:0}
+.krow .kj{font-family:'Shippori Mincho B1',serif;font-size:18px;line-height:1.6}
+.krow .kj rt{visibility:visible}
+.krow .kk{font-size:11.5px;color:var(--dim);margin-top:2px}
+.krow .km{font-size:12.5px;color:var(--ai);margin-top:3px;line-height:1.55}
+.krow .kr{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+.mini{background:none;border:1px solid var(--line);color:var(--dim);border-radius:8px;font-family:inherit;font-size:12px;padding:5px 9px}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:var(--thread);color:var(--ink);font-size:13px;font-weight:500;padding:8px 14px;border-radius:999px;z-index:80;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>読解<span>の</span>糸</h1>
+  <span style="display:flex;gap:10px;align-items:center">
+    <span class="hpill" id="hpill">…</span>
+    <a href="index.html" class="hlink" title="Back to the Ito hub">糸。</a>
+  </span>
+</header>
+<nav>
+  <button id="tab-lib" class="on"><ruby>本棚<rt>ほんだな</rt></ruby></button>
+  <button id="tab-keep">★ キープ</button>
+  <button id="tab-set"><ruby>設定<rt>せってい</rt></ruby></button>
+</nav>
+<main id="main"></main>
+
+<div id="rd">
+  <div class="rbar">
+    <button class="x" id="r-close" aria-label="close">✕</button>
+    <div class="rt" id="r-title"></div>
+    <button class="tb" id="r-furi">あ</button>
+    <button class="tb" id="r-en">英</button>
+    <button class="tb" id="r-size">Aa</button>
+  </div>
+  <div id="r-scroll">
+    <div class="selbar" id="selbar"><span>✂ フレーズの<b>終わり</b>をタップ（同じ文の中）</span><button id="sel-cancel">やめる</button></div>
+    <div class="rwrap" id="r-body"></div>
+  </div>
+  <div class="rctl">
+    <button id="c-prev" aria-label="previous sentence">⏮</button>
+    <button id="c-play" class="play">▶</button>
+    <button id="c-next" aria-label="next sentence">⏭</button>
+    <button id="c-rate" class="sm">0.9×</button>
+    <button id="c-mode" class="sm">連続</button>
+  </div>
+</div>
+<div id="scrim"></div>
+<div id="sheet"></div>
+<div id="toast"></div>
+
+<script>
+(function(){
+
+/* =====================================================================
+   ==================  DATA — EDITABLE CONTENT SECTION  =================
+   =====================================================================
+   STORIES is GENERATED by build/build.py from build/stories/*.txt and
+   pasted here. Hand edits are fine, but the next build will overwrite
+   them — edit the .txt sources instead when you can.
+
+   Each story:
+     id   PERMANENT — ★, 🔖 and 続き are keyed to it. Never change or reuse.
+     l    ceiling: no vocabulary from a Minna lesson after this one
+     f    [lo,hi] focus band — the lessons the story deliberately works
+     t    title (markup)    te English title    a  one-line blurb
+     p    paragraphs → lines {j: markup, e: English, s?: speaker}
+     g    glossary [dictionary form, reading, gloss, lesson (0 = not Minna)]
+     sp   speakers {name: [f|m, reading]}
+   Markup inside j / t:
+     [表記|よみ|g|flags]   g = index into the story's glossary
+       flags  *  beyond the story's level → furigana always on, dotted line
+              #  proper noun → furigana always on
+              !  TTS reads the kana instead of the kanji (known misreads)
+     anything outside brackets is plain kana / punctuation
+   ===================================================================== */
+const STORIES=[
+{"id":"R05a","l":5,"f":[3,5],"t":"[土曜日|どようび|0]の[鎌倉|かまくら||#]","te":"Saturday in Kamakura","a":"A short diary. Times, days, going and coming back, and who with.","p":[[{"j":"[わたし||1]はマリアです。","e":"I'm Maria."},{"j":"ブラジルから[来|き|2]ました。","e":"I came from Brazil."},{"j":"[横浜|よこはま||#]の[会社|かいしゃ|3]の[会社員|かいしゃいん|4]です。","e":"I'm an employee at a company in Yokohama."}],[{"j":"[毎朝|まいあさ|5]6[時半|じはん|6]に[起き|おき|7]ます。","e":"Every morning I get up at 6:30."},{"j":"[会社|かいしゃ|3]は9[時|じ|8]から5[時|じ|8]までです。","e":"My company is from 9 to 5."},{"j":"[土曜日|どようび|0]と[日曜日|にちようび|9]は[休み|やすみ|10]です。","e":"Saturday and Sunday are my days off."}],[{"j":"[先週|せんしゅう|11]の[土曜日|どようび|0]、[友達|ともだち|12]と[鎌倉|かまくら||#]へ[行き|いき|13]ました。","e":"Last Saturday I went to Kamakura with a friend."},{"j":"[友達|ともだち|12]は[佐藤|さとう||#][さん||14]です。","e":"My friend is Ms. Sato."},{"j":"[佐藤|さとう||#][さん||14]は[鎌倉|かまくら||#]の[人|ひと]です。","e":"Ms. Sato is from Kamakura."},{"j":"[横浜駅|よこはまえき||#]から[鎌倉駅|かまくらえき||#]まで[電車|でんしゃ|15]で[行き|いき|13]ました。","e":"We went by train from Yokohama Station to Kamakura Station."},{"j":"[鎌倉|かまくら||#]から[江ノ島|えのしま||#]まで[歩い|あるい|16]て[行き|いき|13]ました。","e":"From Kamakura to Enoshima we went on foot."},{"j":"[夜|よる|17]8[時|じ|8]に[うち||18]へ[帰り|かえり|19]ました。","e":"I got home at 8 at night."}],[{"j":"[日曜日|にちようび|9]は[どこ||20]も[行き|いき|13]ませんでした。","e":"On Sunday I didn't go anywhere."},{"j":"[あした||21]から[会社|かいしゃ|3]です。","e":"From tomorrow it's work again."}]],"g":[["土曜日","どようび","Saturday",4],["わたし","わたし","I",1],["から来ました","","I'm from ～ (country)",1],["会社","かいしゃ","company",3],["会社員","かいしゃいん","company employee",1],["毎朝","まいあさ","every morning",4],["時半","じはん","－ o'clock + half",4],["起きる","おきる","get up, wake up",4],["時","じ","－ o'clock",4],["日曜日","にちようび","Sunday",4],["休み","やすみ","rest, a holiday, a day off",4],["先週","せんしゅう","last week",5],["友達","ともだち","friend",5],["行く","いく","go",5],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["電車","でんしゃ","electric train",5],["歩く","あるく","on foot",5],["夜","よる","night, evening",4],["うち","うち","house, home",3],["帰る","かえる","go home, return",5],["どこ","どこ","where, what place",3],["あした","あした","tomorrow",4]]},
+{"id":"R08a","l":8,"f":[6,8],"t":"[日曜日|にちようび|0]の[朝|あさ|1]","te":"Sunday morning","a":"A coworker drops by. Gifts change hands, tea gets made.","p":[[{"j":"[わたし||2]の[うち||3]は[藤沢|ふじさわ||#]です。","e":"My home is in Fujisawa."},{"j":"[藤沢|ふじさわ||#]は[にぎやか||4]な[町|まち|5]です。","e":"Fujisawa is a lively town."},{"j":"[わたし||2]の[うち||3]は[新しい|あたらしい|6]です。","e":"My place is new."},{"j":"[あまり||7][大きく|おおきく|8]ないです。","e":"It isn't very big, though."}],[{"j":"[日曜日|にちようび|0]の[朝|あさ|1]、[山田|やまだ||#][さん||9]は[うち||3]へ[来|き|10]ました。","e":"On Sunday morning, Mr. Yamada came to my place."},{"j":"[山田|やまだ||#][さん||9]は[会社|かいしゃ|11]の[人|ひと]です。","e":"Mr. Yamada is someone from work."},{"j":"[おはようございます||12]。","e":"Good morning.","s":"山田"},{"j":"あ、[山田|やまだ||#][さん||9]。[おはようございます||12]。[どうぞ||13]。","e":"Oh, Mr. Yamada. Good morning. Come in.","s":"マリア"},{"j":"[これ||14]、[どうぞ||13]。[鎌倉|かまくら||#]の[お||15][土産|みやげ|15]です。","e":"Here, this is for you. A souvenir from Kamakura.","s":"山田"},{"j":"あ、[ありがとう||16][ござい||16]ます。","e":"Oh, thank you very much.","s":"マリア"}],[{"j":"[わたし||2]は[山田|やまだ||#][さん||9]に[お||15][土産|みやげ|15]を[もらい||17]ました。","e":"I received a souvenir from Mr. Yamada."},{"j":"[わたし||2]は[山田|やまだ||#][さん||9]にブラジルの[コーヒー||18]を[あげ||19]ました。","e":"I gave Mr. Yamada some Brazilian coffee."}],[{"j":"[日本|にほん||#]の[生活|せいかつ|20]は[どう||21]ですか。","e":"How is life in Japan?","s":"山田"},{"j":"[とても||22][楽しい|たのしい|23]ですが、[日本語|にほんご|24]は[難しい|むずかしい|25]です。","e":"It's a lot of fun, but Japanese is difficult.","s":"マリア"},{"j":"そうですか。マリア[さん||9]の[日本語|にほんご|24]は[とても||22]いいですよ。","e":"Is that so? Your Japanese is really good, you know.","s":"山田"},{"j":"[ありがとう||16][ござい||16]ます。","e":"Thank you.","s":"マリア"},{"j":"[山田|やまだ||#][さん||9]、[いっしょ||26]に[コーヒー||18]を[飲み|のみ|27]ませんか。","e":"Mr. Yamada, would you like to have some coffee together?","s":"マリア"},{"j":"いいですね。[飲み|のみ|27]ましょう。","e":"Sounds good. Let's.","s":"山田"}],[{"j":"ブラジルの[コーヒー||18]は[おいしい||28]です。","e":"Brazilian coffee is delicious."},{"j":"[山田|やまだ||#][さん||9]は[おもしろい||29][人|ひと]です。","e":"Mr. Yamada is an interesting person."},{"j":"[そして||30]、[親切|しんせつ|31]な[人|ひと]です。","e":"And he's a kind person."}]],"g":[["日曜日","にちようび","Sunday",4],["朝","あさ","morning",4],["わたし","わたし","I",1],["うち","うち","house, home",3],["にぎやか","にぎやか","lively",8],["町","まち","town, city",8],["新しい","あたらしい","new, fresh",8],["あまり","あまり","not so (used with negatives)",8],["大きい","おおきい","big, large",8],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["来る","くる","come",5],["会社","かいしゃ","company",3],["おはようございます","","おはようございます",1],["どうぞ","どうぞ","Here you are. (used when offering someone something)",2],["これ","これ","this (thing here)",2],["お土産","","souvenir, present",2],["ありがとうございます","","ありがとうございます",2],["もらう","もらう","receive",7],["コーヒー","こーひー","coffee",2],["あげる","あげる","give",7],["生活","せいかつ","life",8],["どう","どう","how",2],["とても","とても","very",8],["楽しい","たのしい","enjoyable",8],["日本語","にほんご","the Japanese language",2],["難しい","むずかしい","difficult",8],["いっしょ","いっしょ","together",6],["飲む","のむ","drink",6],["おいしい","おいしい","delicious, tasty",8],["おもしろい","おもしろい","interesting",8],["そして","そして","and (used to connect sentences)",8],["親切","しんせつ","helpful, kind, considerate (not used about one's own family members)",8]],"sp":{"山田":["m","やまだ"],"マリア":["f","まりあ"]}},
+{"id":"R10a","l":10,"f":[8,10],"t":"[夜|よる|0]の[コンビニ||1]","te":"The convenience store at night","a":"Where things are, who's there, and why a konbini at 11 p.m. is the best place in town.","p":[[{"j":"[わたし||2]の[うち||3]の[近く|ちかく|4]に[コンビニ||1]があります。","e":"There's a convenience store near my home."},{"j":"[駅|えき|5]の[前|まえ|6]にも[コンビニ||1]があります。","e":"There's one in front of the station too."},{"j":"[コンビニ||1]の[中|なか|7]に[いろいろ||8]な[物|もの]があります。","e":"There are all kinds of things inside a convenience store."},{"j":"[パン||9]や[飲み物|のみもの|10]や[雑誌|ざっし|11]などがあります。","e":"There's bread, drinks, magazines, and so on."},{"j":"[銀行|ぎんこう|12]の[ATM||13]もあります。","e":"There's even a bank ATM."}],[{"j":"[わたし||2]は[コンビニ||1]が[とても||14][好き|すき|15]です。","e":"I really like convenience stores."},{"j":"[どう||16][し||16]てですか。","e":"Why?"},{"j":"[夜|よる|0]12[時|じ|17]も、[朝|あさ|18]5[時|じ|17]も、[店|みせ|19]の[人|ひと]が[い||20]ますから。","e":"Because there's someone working there even at midnight, even at 5 a.m."}],[{"j":"[きのう||21]の[夜|よる|0]11[時|じ|17]に、[コンビニ||1]へ[行き|いき|22]ました。","e":"Last night at 11, I went to the convenience store."},{"j":"[レジ||23|*]に[男|おとこ|24]の[人|ひと|24]が[い||20]ました。","e":"There was a man at the register."},{"j":"[その||25][人|ひと]はグエン[さん||26]です。","e":"That's Mr. Nguyen."},{"j":"グエン[さん||26]はベトナムの[人|ひと]です。","e":"Mr. Nguyen is from Vietnam."}],[{"j":"[すみ||27]ません、ボールペンはありますか。","e":"Excuse me, do you have ballpoint pens?","s":"マリア"},{"j":"[はい||28]、[あそこ||29]です。[ノート||30]の[上|うえ|31]にありますよ。","e":"Yes, over there. They're above the notebooks.","s":"グエン"},{"j":"あ、ありました。[どう||32]も。","e":"Oh, there they are. Thanks.","s":"マリア"},{"j":"350[円|えん|33]です。","e":"That's 350 yen.","s":"グエン"},{"j":"[はい||28]。","e":"Here you go.","s":"マリア"},{"j":"ブラジルの[方|かた||!]ですか。","e":"Are you from Brazil?","s":"グエン"},{"j":"[ええ||34]、そうです。[どう||16][し||16]て[わかり||35]ましたか。","e":"Yes, I am. How did you know?","s":"マリア"},{"j":"[コーヒー||36]の[Tシャツ||37|*]ですから。","e":"Because of your coffee T-shirt.","s":"グエン"},{"j":"あ、そうですね。","e":"Ah, right.","s":"マリア"}],[{"j":"グエン[さん||26]は[日本語|にほんご|38]が[とても||14][上手|じょうず|39]です。","e":"Mr. Nguyen's Japanese is very good."},{"j":"[わたし||2]は[ベトナム語|べとなむご|40]が[全然|ぜんぜん|41][わかり||35]ません。","e":"I don't understand Vietnamese at all."},{"j":"[今|いま|42]、[うち||3]の[近く|ちかく|4]に[新しい|あたらしい|43][友達|ともだち|44]が[い||20]ます。","e":"Now there's a new friend near my home."}]],"g":[["夜","よる","night, evening",4],["コンビニ","こんびに","convenience store",10],["わたし","わたし","I",1],["うち","うち","house, home",3],["近く","ちかく","near, vicinity",10],["駅","えき","station",5],["前","まえ","front, before",10],["中","なか","in, inside",10],["いろいろ","いろいろ","various",10],["パン","ぱん","bread",6],["飲み物","のみもの","drinks",9],["雑誌","ざっし","magazine",2],["銀行","ぎんこう","bank",4],["ATM","えーてぃーえむ","cash machine, ATM (Automatic Teller Machine)",10],["とても","とても","very",8],["好き","すき","like",9],["どうして","","why",9],["時","じ","－ o'clock",4],["朝","あさ","morning",4],["店","みせ","store, shop",6],["いる","いる","exist, be (referring to animate things)",10],["きのう","きのう","yesterday",4],["行く","いく","go",5],["レジ","れじ","register, checkout counter",0],["男の人","","man",10],["その","その","that ～, that ～ near the listener",2],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["すみません","すむ","Excuse me.",3],["はい","はい","yes",1],["あそこ","あそこ","that place over there",3],["ノート","のーと","notebook",2],["上","うえ","on, above, over",10],["どう","どう","how",2],["円","えん","－ yen",3],["ええ","ええ","yes",6],["わかる","わかる","understand",6],["コーヒー","こーひー","coffee",2],["Tシャツ","てぃーしゃつ","T-shirt",0],["日本語","にほんご","the Japanese language",2],["上手","じょうず","good at",9],["ベトナム語","べとなむご","ベトナム (language)",1],["全然","ぜんぜん","not at all (used with negatives)",9],["今","いま","now",4],["新しい","あたらしい","new, fresh",8],["友達","ともだち","friend",5]],"sp":{"グエン":["m","ぐえん"],"マリア":["f","まりあ"]}},
+{"id":"R13a","l":13,"f":[11,13],"t":"[梅雨|つゆ|0|*]の100[円|えん|1][ショップ||2|*]","te":"The 100-yen shop in rainy season","a":"Comparing two umbrellas, counting things, and wanting to be somewhere drier.","p":[[{"j":"6[月|がつ|3]は[梅雨|つゆ|0|*]です。","e":"June is the rainy season."},{"j":"[毎日|まいにち|4][雨|あめ|5]です。","e":"It's rainy every day."},{"j":"[先週|せんしゅう|6]も[雨|あめ|5]でした。","e":"Last week was rainy too."},{"j":"[天気|てんき|7]が[悪かっ|わるかっ|8]たですから、[わたし||9]は[どこ||10]も[行き|いき|11]ませんでした。","e":"The weather was bad, so I didn't go anywhere."}],[{"j":"[わたし||9]の[傘|かさ|12]は1[本|ぽん|13]だけです。","e":"I have only one umbrella."},{"j":"[その||14][傘|かさ|12]は[古い|ふるい|15]です。","e":"That umbrella is old."},{"j":"[新しい|あたらしい|16][傘|かさ|12]がほしいです。","e":"I want a new umbrella."}],[{"j":"[土曜日|どようび|17]、[駅|えき|18]の[近く|ちかく|19]の100[円|えん|1][ショップ||2|*]へ[傘|かさ|12]を[買い|かい|20]に[行き|いき|11]ました。","e":"On Saturday, I went to the 100-yen shop near the station to buy an umbrella."},{"j":"[店|みせ|21]は[広かっ|ひろかっ|22]たです。","e":"The shop was big."},{"j":"[いろいろ||23]な[物|もの]がありました。","e":"There were all kinds of things."},{"j":"[傘|かさ|12]は2つありました。","e":"There were two umbrellas."},{"j":"[青い|あおい|24][傘|かさ|12]は300[円|えん|1]でした。","e":"The blue umbrella was 300 yen."},{"j":"[黒い|くろい|25][傘|かさ|12]は500[円|えん|1]でした。","e":"The black umbrella was 500 yen."}],[{"j":"[すみ||26]ません。[この||27][青い|あおい|24][傘|かさ|12]と[黒い|くろい|25][傘|かさ|12]と、[どちら||28]がいいですか。","e":"Excuse me. Between this blue umbrella and the black one, which is better?","s":"マリア"},{"j":"[黒い|くろい|25]ほうがいいですよ。[大きい|おおきい|29]ですから。","e":"The black one is better. Because it's bigger.","s":"店の人"},{"j":"[じゃ||30]、[黒い|くろい|25][傘|かさ|12]を[ください||31]。","e":"Then I'll take the black umbrella.","s":"マリア"},{"j":"[ありがとう||32][ござい||32]ます。","e":"Thank you very much.","s":"店の人"},{"j":"あ、[この||27][ノート||33]も2つ[ください||31]。","e":"Oh, two of these notebooks too, please.","s":"マリア"},{"j":"[全部|ぜんぶ|34]で800[円|えん|1]です。","e":"That's 800 yen altogether.","s":"店の人"}],[{"j":"[うち||35]へ[帰り|かえり|36]ました。","e":"I went home."},{"j":"でも、[日曜日|にちようび|37]は[とても||38]いい[天気|てんき|7]でした。","e":"But Sunday was beautiful weather."},{"j":"[新しい|あたらしい|16][傘|かさ|12]は[うち||35]にありました。","e":"The new umbrella stayed at home."}],[{"j":"[わたし||9]は[夏|なつ|39]に1[週間|しゅうかん|40]ぐらい[北海道|ほっかいどう||#]へ[行き|いき|11]たいです。","e":"In summer, I want to go to Hokkaido for about a week."},{"j":"[北海道|ほっかいどう||#]は[東京|とうきょう||#]より[涼しい|すずしい|41]です。","e":"Hokkaido is cooler than Tokyo."},{"j":"[そして||42]、[梅雨|つゆ|0|*]がありません。","e":"And it has no rainy season."},{"j":"[日本|にほん||#]で[いちばん||43][好き|すき|44]な[所|ところ|45]です。","e":"It's my favorite place in Japan."}]],"g":[["梅雨","つゆ","rainy season (June–July)",0],["円","えん","－ yen",3],["ショップ","しょっぷ","shop (as in 100円ショップ, a 100-yen shop)",0],["月","がつ","-th month of the year",5],["毎日","まいにち","every day",4],["雨","あめ","rain, rainy",12],["先週","せんしゅう","last week",5],["天気","てんき","weather",12],["悪い","わるい","bad",8],["わたし","わたし","I",1],["どこ","どこ","where, what place",3],["行く","いく","go",5],["傘","かさ","umbrella",2],["本","ぽん","book",2],["その","その","that ～, that ～ near the listener",2],["古い","ふるい","old (not used to describe a person's age)",8],["新しい","あたらしい","new, fresh",8],["土曜日","どようび","Saturday",4],["駅","えき","station",5],["近く","ちかく","near, vicinity",10],["買う","かう","buy",6],["店","みせ","store, shop",6],["広い","ひろい","wide, spacious",13],["いろいろ","いろいろ","various",10],["青い","あおい","blue",8],["黒い","くろい","black",8],["すみません","すむ","Excuse me.",3],["この","この","this ～, this ～ here",2],["どちら","どちら","which way, where (polite equivalent of どこ)",3],["大きい","おおきい","big, large",8],["じゃ","じゃ","well, then, in that case",3],["くださる","くださる","Give me [～], please.",3],["ありがとうございます","","ありがとうございます",2],["ノート","のーと","notebook",2],["全部","ぜんぶ","all",11],["うち","うち","house, home",3],["帰る","かえる","go home, return",5],["日曜日","にちようび","Sunday",4],["とても","とても","very",8],["夏","なつ","summer",12],["週間","しゅうかん","－ week(s)",11],["涼しい","すずしい","cool",12],["そして","そして","and (used to connect sentences)",8],["いちばん","いちばん","the most ～ (いちばん うえ : the top)",10],["好き","すき","like",9],["所","ところ","place",8]],"sp":{"店の人":["m","みせのひと"],"マリア":["f","まりあ"]}},
+{"id":"R15a","l":15,"f":[14,15],"t":"[市|し|0|*]の[プール||1]","te":"The city pool","a":"First day at the pool: what you may do, what you must not, and why the staff is so polite about it.","p":[[{"j":"[わたし||2]は[今|いま|3]、[藤沢|ふじさわ||#]に[住ん|すん|4]で[い||4]ます。","e":"I live in Fujisawa now."},{"j":"[駅|えき|5]の[近く|ちかく|6]に[市|し|0|*]の[プール||1]があります。","e":"There's a city pool near the station."},{"j":"[きのう||7]の[夜|よる|8]、[初めて|はじめて|9][行き|いき|10]ました。","e":"Last night I went for the first time."}],[{"j":"[いらっしゃい||11]ませ。","e":"Welcome.","s":"受付"},{"j":"[あのう||12]、[ここ||13]で[泳ぎ|およぎ|14]たいです。","e":"Um, I'd like to swim here.","s":"マリア"},{"j":"[はい||15]。[じゃ||16]、[この||17][紙|かみ|18]に[名前|なまえ|19]と[住所|じゅうしょ|20]を[書い|かい|21]てください。","e":"Certainly. Then please write your name and address on this paper.","s":"受付"},{"j":"[ローマ字|ろーまじ|22]で[書い|かい|21]てもいいですか。","e":"May I write it in roman letters?","s":"マリア"},{"j":"[はい||15]、いいですよ。","e":"Yes, that's fine.","s":"受付"},{"j":"[それ||23]から、[写真|しゃしん|24]を[撮り|とり|25]ますね。[そこ||26]に[立っ|たっ|27]てください。","e":"Next, I'll take your photo. Please stand there.","s":"受付"},{"j":"[はい||15]、[もう||28][少し|すこし|28][右|みぎ|29]へ。……[はい||15]、[ありがとう||30][ござい||30]ます。","e":"Okay, a little more to the right. … Okay, thank you.","s":"受付"}],[{"j":"[プール||1]で[写真|しゃしん|24]を[撮っ|とっ|25]てもいいですか。","e":"May I take photos at the pool?","s":"マリア"},{"j":"[すみ||31]ません。[プール||1]で[写真|しゃしん|24]を[撮っ|とっ|25]てはいけません。","e":"I'm sorry. You may not take photos at the pool.","s":"受付"},{"j":"そうですか。[水|みず|32]を[飲ん|のん|33]でもいいですか。","e":"I see. May I drink water?","s":"マリア"},{"j":"[はい||15]、[水|みず|32]はいいですよ。","e":"Yes, water is fine.","s":"受付"},{"j":"でも、[プール||1]の[中|なか|34]で[飲み物|のみもの|35]を[飲ん|のん|33]ではいけません。","e":"But you may not have drinks inside the pool.","s":"受付"},{"j":"[わかり||36]ました。","e":"Understood.","s":"マリア"},{"j":"[靴|くつ|37]は[ここ||13]に[置い|おい|38]てください。","e":"Please leave your shoes here.","s":"受付"},{"j":"[荷物|にもつ|39]は[あそこ||40]に[置い|おい|38]てください。","e":"Please leave your bags over there.","s":"受付"},{"j":"[はい||15]。","e":"Okay.","s":"マリア"}],[{"j":"[プール||1]の[中|なか|34]で、[たくさん||41]の[人|ひと]が[泳い|およい|14]でいました。","e":"Lots of people were swimming in the pool."},{"j":"80[歳|さい|42]ぐらいの[女|おんな|43]の[人|ひと|43]も[泳い|およい|14]でいました。","e":"A woman of about 80 was swimming too."},{"j":"[わたし||2]より[ずっと||44][速かっ|はやかっ|45]たです！","e":"She was much faster than me!"}],[{"j":"[ありがとう||46][ござい||46]ました。[また||47][来|き|48]ます。","e":"Thank you very much. I'll come again.","s":"マリア"},{"j":"[はい||15]、[また||47][来|き|48]てください。","e":"Yes, please come again.","s":"受付"}]],"g":[["市","し","city (municipal)",0],["プール","ぷーる","swimming pool",13],["わたし","わたし","I",1],["今","いま","now",4],["住んでいます","","live [in Osaka]",15],["駅","えき","station",5],["近く","ちかく","near, vicinity",10],["きのう","きのう","yesterday",4],["夜","よる","night, evening",4],["初めて","はじめて","for the first time",12],["行く","いく","go",5],["いらっしゃる","いらっしゃる","How nice of you to come. (lit. Welcome.)",3],["あのう","あのう","Er... (used to show hesitation)",2],["ここ","ここ","here, this place",3],["泳ぐ","およぐ","swim",13],["はい","はい","yes",1],["じゃ","じゃ","well, then, in that case",3],["この","この","this ～, this ～ here",2],["紙","かみ","paper",7],["名前","なまえ","name",14],["住所","じゅうしょ","address",14],["書く","かく","write (かきます can also mean to draw or paint, but in this case it is written with hiragana in this book)",6],["ローマ字","ろーまじ","the Roman alphabet",9],["それ","それ","that (thing near the listener)",2],["写真","しゃしん","photograph",6],["撮る","とる","take [a photograph]",6],["そこ","そこ","there, that place near the listener",3],["立つ","たつ","stand up",14],["もう少し","","a little more",14],["右","みぎ","right [side]",10],["ありがとうございます","","ありがとうございます",2],["すみません","すむ","Excuse me.",3],["水","みず","water",6],["飲む","のむ","drink",6],["中","なか","in, inside",10],["飲み物","のみもの","drinks",9],["わかる","わかる","understand",6],["靴","くつ","shoes",3],["置く","おく","put",15],["荷物","にもつ","luggage, baggage, parcel",7],["あそこ","あそこ","that place over there",3],["たくさん","たくさん","many, much",9],["歳","さい","－ years old",1],["女の人","","woman",10],["ずっと","ずっと","by far",12],["速い","はやい","fast, early",12],["ありがとうございました","","Thank you very much.",4],["また","また","again",14],["来る","くる","come",5]],"sp":{"受付":["f","うけつけ"],"マリア":["f","まりあ"]}},
+{"id":"R18a","l":18,"f":[16,18],"t":"[かぜ||0]の[月曜日|げつようび|1]","te":"Cold-ish Monday","a":"A phone call to the office, a clinic, and a list of things she must and mustn't do.","p":[[{"j":"[月曜日|げつようび|1]の[朝|あさ|2]、6[時|じ|3]に[起き|おき|4]ました。","e":"On Monday morning, I got up at 6."},{"j":"[のど||5]が[痛く|いたく|6]て、[頭|あたま|7]も[痛かっ|いたかっ|6]たです。","e":"My throat hurt, and my head hurt too."},{"j":"[熱|ねつ|8]がありました。","e":"I had a fever."},{"j":"38[度|ど|9|*]でした。","e":"It was 38 degrees."}],[{"j":"[会社|かいしゃ|10]に[電話|でんわ|11]を[かけ||12]て、[課長|かちょう|13]と[話し|はなし|14]ました。","e":"I called the office and talked with my section chief."},{"j":"[すみ||15]ません、[熱|ねつ|8]があります。","e":"I'm sorry, I have a fever.","s":"マリア"},{"j":"[きょう||16]は[休ん|やすん|17]でもいいですか。","e":"May I take today off?","s":"マリア"},{"j":"[はい||18]、いいですよ。[会社|かいしゃ|10]に[来|こ|19]ないでください。","e":"Yes, of course. Please don't come in.","s":"課長"},{"j":"[病院|びょういん|20]へ[行っ|いっ|21]て、[ゆっくり||22][休ん|やすん|17]でください。","e":"Go to a clinic and get some proper rest.","s":"課長"},{"j":"[はい||18]。でも、[あした||23]までに[レポート||24]を[出さ|ださ|25]なければなりません。","e":"Okay. But I have to submit a report by tomorrow.","s":"マリア"},{"j":"[大丈夫|だいじょうぶ|26]です。[出さ|ださ|25]なくてもいいですよ。","e":"It's fine. You don't have to submit it.","s":"課長"},{"j":"[ありがとう||27][ござい||27]ます。","e":"Thank you very much.","s":"マリア"}],[{"j":"[近く|ちかく|28]の[病院|びょういん|20]は[インターネット||29]で[予約|よやく|30]することが[でき||31]ます。","e":"The nearby clinic can be booked online."},{"j":"[わたし||32]は9[時半|じはん|33]に[予約|よやく|30]しました。","e":"I booked for 9:30."},{"j":"[病院|びょういん|20]へ[行く|いく|21][前|まえ|34]に、[保険証|ほけんしょう|35]を[かばん||36]に[入れ|いれ|37]ました。","e":"Before going to the clinic, I put my insurance card in my bag."}],[{"j":"[保険証|ほけんしょう|35]を[見せ|みせ|38]て[ください||38]。","e":"Please show me your insurance card.","s":"受付"},{"j":"[それ||39]から、[この||40][紙|かみ|41]に[名前|なまえ|42]と[住所|じゅうしょ|43]を[書い|かい|44]てください。","e":"Then please write your name and address on this paper.","s":"受付"},{"j":"[あそこ||45]で[待っ|まっ|46]てください。","e":"Please wait over there.","s":"受付"}],[{"j":"20[分|ぷん|47]ぐらい[待ち|まち|46]ました。","e":"I waited about 20 minutes."},{"j":"[医者|いしゃ|48]は[若く|わかく|49]て、[親切|しんせつ|50]な[人|ひと]でした。","e":"The doctor was young and kind."},{"j":"[かぜ||0]ですね。","e":"It's a cold.","s":"医者"},{"j":"[薬|くすり|51]を[出し|だし|25]ますから、1[日|にち|52]に3[回|かい|53][飲ん|のん|54]でください。","e":"I'll prescribe some medicine, so take it three times a day.","s":"医者"},{"j":"[きょう||16]と[あした||23]は、[仕事|しごと|55]をしないでください。","e":"Please don't work today or tomorrow.","s":"医者"},{"j":"[それ||39]から、[水|みず|56]を[たくさん||57][飲ま|のま|54]なければなりません。","e":"Also, you must drink plenty of water.","s":"医者"},{"j":"[お||58][酒|さけ|58]を[飲ん|のん|54]でもいいですか。","e":"May I drink alcohol?","s":"マリア"},{"j":"[いいえ||59]、[飲ま|のま|54]ないでください。","e":"No, please don't.","s":"医者"}],[{"j":"[うち||60]へ[帰っ|かえっ|61]て、[薬|くすり|51]を[飲ん|のん|54]でから、[寝|ね|62]ました。","e":"I went home, took the medicine, and then slept."},{"j":"[夜|よる|63]、[熱|ねつ|8]は37[度|ど|9|*]でした。","e":"That night, my temperature was 37 degrees."},{"j":"[わたし||32]の[趣味|しゅみ|64]は[泳ぐ|およぐ|65]ことです。","e":"My hobby is swimming."},{"j":"でも、[今週|こんしゅう|66]は[プール||67]へ[行く|いく|21]ことが[でき||31]ません。","e":"But this week I can't go to the pool."}]],"g":[["かぜ","かぜ","cold, flu",17],["月曜日","げつようび","Monday",4],["朝","あさ","morning",4],["時","じ","－ o'clock",4],["起きる","おきる","get up, wake up",4],["のど","のど","throat",17],["痛い","いたい","(I) have a pain [in my ～].",17],["頭","あたま","head, brain",16],["熱","ねつ","temperature, fever",17],["度","ど","degrees (temperature)",19],["会社","かいしゃ","company",3],["電話","でんわ","telephone handset, telephone call",3],["かける","かける","make [a telephone call]",7],["課長","かちょう","section head",18],["話す","はなす","speak, talk",14],["すみません","すむ","Excuse me.",3],["きょう","きょう","today",4],["休む","やすむ","take a rest, take a holiday",4],["はい","はい","yes",1],["来る","くる","come",5],["病院","びょういん","hospital",1],["行く","いく","go",5],["ゆっくり","ゆっくり","slowly, leisurely",14],["あした","あした","tomorrow",4],["レポート","れぽーと","report",6],["出す","だす","send [a letter]",13],["大丈夫","だいじょうぶ","all right",17],["ありがとうございます","","ありがとうございます",2],["近く","ちかく","near, vicinity",10],["インターネット","いんたーねっと","Internet",18],["予約","よやく","reserve, book",18],["できる","できる","be able to, can",18],["わたし","わたし","I",1],["時半","じはん","－ o'clock + half",4],["前","まえ","front, before",10],["保険証","ほけんしょう","[health] insurance card",17],["かばん","かばん","bag, briefcase",2],["入れる","いれる","put in, insert",16],["見せてください","","Please show me [～].",3],["それ","それ","that (thing near the listener)",2],["この","この","this ～, this ～ here",2],["紙","かみ","paper",7],["名前","なまえ","name",14],["住所","じゅうしょ","address",14],["書く","かく","write (かきます can also mean to draw or paint, but in this case it is written with hiragana in this book)",6],["あそこ","あそこ","that place over there",3],["待つ","まつ","wait",14],["分","ぷん","－ minute",4],["医者","いしゃ","[medical] doctor",1],["若い","わかい","young",16],["親切","しんせつ","helpful, kind, considerate (not used about one's own family members)",8],["薬","くすり","medicine",17],["日","にち","-th day of the month, － day(s)",5],["回","かい","－ times",11],["飲む","のむ","drink",6],["仕事","しごと","work, business (～を します : do one's job, work)",8],["水","みず","water",6],["たくさん","たくさん","many, much",9],["お酒","","alcohol, Japanese rice wine",6],["いいえ","いいえ","no",1],["うち","うち","house, home",3],["帰る","かえる","go home, return",5],["寝る","ねる","sleep, go to bed",4],["夜","よる","night, evening",4],["趣味","しゅみ","hobby",18],["泳ぐ","およぐ","swim",13],["今週","こんしゅう","this week",5],["プール","ぷーる","swimming pool",13]],"sp":{"課長":["m","かちょう"],"マリア":["f","まりあ"],"受付":["f","うけつけ"],"医者":["m","いしゃ"]}},
+{"id":"R20a","l":20,"f":[19,20],"t":"[週末|しゅうまつ|0]、[どう||1]する？","te":"What are you doing this weekend?","a":"A casual message thread between friends. All plain form — the way people actually text.","p":[[{"j":"マリア、[元気|げんき|2]？[かぜ||3]は[もう||4][大丈夫|だいじょうぶ|5]？","e":"Maria, how are you? Is your cold better now?","s":"アヤ"},{"j":"[うん||6]、[もう||4][大丈夫|だいじょうぶ|5]。[ありがとう||7]。","e":"Yeah, I'm fine now. Thanks.","s":"マリア"},{"j":"よかった！","e":"Good!","s":"アヤ"},{"j":"ねえ、[土曜日|どようび|8]、[ひま||9]？","e":"Hey, are you free Saturday?","s":"アヤ"},{"j":"[うん||6]、[ひま||9]だよ。[何|なに]をする？","e":"Yeah, I'm free. What do you want to do?","s":"マリア"},{"j":"[ラーメン||10|*]、[食べ|たべ|11]に[行か|いか|12]ない？","e":"Want to go eat ramen?","s":"アヤ"},{"j":"いいね！[どこ||13]の[店|みせ|14]？","e":"Sounds good! Which place?","s":"マリア"},{"j":"[横浜|よこはま||#]の[駅|えき|15]の[近く|ちかく|16]の[店|みせ|14]。[とても||17][おいしい||18]よ。","e":"A place near Yokohama Station. It's really good.","s":"アヤ"},{"j":"[わたし||19]は2[回|かい|20][行|い|12|!]ったことがある。","e":"I've been there twice.","s":"アヤ"},{"j":"[わたし||19]は[横浜|よこはま||#]で[ラーメン||10|*]を[食べ|たべ|11]たことがない。","e":"I've never had ramen in Yokohama.","s":"マリア"},{"j":"え、そう？[じゃ||21]、[行こう|いこう|12]！","e":"What, really? Then let's go!","s":"アヤ"},{"j":"[うん||6]、[行く|いく|12]。[何時|なんじ|22]？","e":"Yeah, I'll go. What time?","s":"マリア"},{"j":"11[時|じ|23]は[どう||1]？","e":"How about 11?","s":"アヤ"},{"j":"12[時|じ|23][ごろ||24]は、[人|ひと]が[たくさん||25][来る|くる|26]から。","e":"Around noon, tons of people show up.","s":"アヤ"},{"j":"[わかっ||27]た。11[時|じ|23]ね。","e":"Got it. 11 it is.","s":"マリア"},{"j":"[ラーメン||10|*]を[食べ|たべ|11]てから、[買い物|かいもの|28]したり、[海|うみ|29]を[見|み|30]たりしない？","e":"After ramen, want to do some shopping, look at the sea, that kind of thing?","s":"アヤ"},{"j":"いいね。でも、[土曜日|どようび|8]は[寒く|さむく|31]なるよ。","e":"Sounds good. But it's going to get cold on Saturday.","s":"マリア"},{"j":"え、そう？","e":"Huh, really?","s":"アヤ"},{"j":"[うん||6]。[天気|てんき|32]の[アプリ||33|*]を[見|み|30]た。","e":"Yeah. I checked a weather app.","s":"マリア"},{"j":"[じゃ||21]、[海|うみ|29]は[次|つぎ|34]にしよう。","e":"Then let's save the sea for next time.","s":"アヤ"},{"j":"そうだね。","e":"Yeah, let's.","s":"マリア"},{"j":"[じゃ||21]、[土曜日|どようび|8]、11[時|じ|23]に[横浜駅|よこはまえき||#]で！","e":"See you Saturday, 11, at Yokohama Station!","s":"アヤ"},{"j":"[うん||6]、[じゃ||21]、[また||35]ね！","e":"Yep, see you!","s":"マリア"}]],"g":[["週末","しゅうまつ","weekend",13],["どう","どう","how",2],["元気","げんき","healthy, energetic, cheerful",8],["かぜ","かぜ","cold, flu",17],["もう","もう","already",7],["大丈夫","だいじょうぶ","all right",17],["うん","うん","yes (an informal equivalent of はい)",20],["ありがとう","ありがとう","Thank you [very much].",2],["土曜日","どようび","Saturday",4],["ひま","ひま","free (time)",8],["ラーメン","らーめん","ramen",0],["食べる","たべる","eat",6],["行く","いく","go",5],["どこ","どこ","where, what place",3],["店","みせ","store, shop",6],["駅","えき","station",5],["近く","ちかく","near, vicinity",10],["とても","とても","very",8],["おいしい","おいしい","delicious, tasty",8],["わたし","わたし","I",1],["回","かい","－ times",11],["じゃ","じゃ","well, then, in that case",3],["なん","なんじ","what",2],["時","じ","－ o'clock",4],["ごろ","ごろ","about ～ (time)",13],["たくさん","たくさん","many, much",9],["来る","くる","come",5],["わかる","わかる","understand",6],["買い物","かいもの","do shopping",13],["海","うみ","sea, ocean",12],["見る","みる","see, look at, watch",6],["寒い","さむい","cold (referring to temperature)",8],["天気","てんき","weather",12],["アプリ","あぷり","app",0],["次","つぎ","next",5],["また","また","again",14]],"sp":{"アヤ":["f","あや"],"マリア":["f","まりあ"]}},
+{"id":"R22a","l":22,"f":[21,22],"t":"[課長|かちょう|0]への[プレゼント||1]","te":"A gift for the section chief","a":"The boss is moving to Osaka. Three coworkers, one gift, and a lot of \"I think…\".","p":[[{"j":"[来月|らいげつ|2]から、[課長|かちょう|0]は[大阪|おおさか||#]の[事務所|じむしょ|3]で[働き|はたらき|4]ます。","e":"Starting next month, our section chief will work at the Osaka office."},{"j":"[それ||5]で、[会社|かいしゃ|6]の[みんな||7]で[課長|かちょう|0]に[プレゼント||1]を[あげ||8]ます。","e":"So everyone at the office is going to give him a present."},{"j":"[きのう||9]の[昼休み|ひるやすみ|10]、[山田|やまだ||#][さん||11]と[林|はやし||#][さん||11]と3[人|にん]で[話し|はなし|12]ました。","e":"Yesterday at lunch break, Mr. Yamada, Ms. Hayashi and I talked it over, the three of us."}],[{"j":"マリア[さん||11]、[何|なに]がいいと[思い|おもい|13]ますか。","e":"Maria, what do you think would be good?","s":"山田"},{"j":"[課長|かちょう|0]は[コーヒー||14]が[好き|すき|15]でしょう？","e":"The chief likes coffee, right?","s":"マリア"},{"j":"[ええ||16]、[毎朝|まいあさ|17][飲ん|のん|18]でいますね。","e":"Yeah, he drinks it every morning.","s":"山田"},{"j":"[じゃ||19]、[おいしい||20][コーヒー||14]は[どう||21]ですか。","e":"Then how about some good coffee?","s":"マリア"},{"j":"[うーん||22]、[コーヒー||14]は[毎日|まいにち|23][飲む|のむ|18][物|もの]ですから……","e":"Hmm, coffee is something you drink every day, so…","s":"林"},{"j":"[長く|ながく|24][使う|つかう|25]ことが[できる||26][物|もの]がいいと[思い|おもい|13]ます。","e":"I think something he can use for a long time would be better.","s":"林"},{"j":"そうですね。","e":"True.","s":"山田"}],[{"j":"[この||27][間|あいだ|27]、[課長|かちょう|0]は「[最近|さいきん|28]、[休み|やすみ|29]の[日|ひ|30]は[山|やま|31]に[登っ|のぼっ|32]ています」と[言っ|いっ|33]ていました。","e":"The other day, the chief said, \"Lately I've been climbing mountains on my days off.\"","s":"林"},{"j":"え、[知り|しり|34]ませんでした。","e":"Oh, I didn't know that.","s":"マリア"},{"j":"[じゃ||19]、[山|やま|31]で[使う|つかう|25]ことが[できる||26][物|もの]は[どう||21]ですか。","e":"Then how about something he can use in the mountains?","s":"山田"},{"j":"[山|やま|31]で[かぶる||35][帽子|ぼうし|36]は[どう||21]ですか。","e":"How about a hat to wear in the mountains?","s":"マリア"},{"j":"いいですね！[軽く|かるく|37]て、[涼しい|すずしい|38][帽子|ぼうし|36]がいいと[思い|おもい|13]ます。","e":"That's great! I think a light, cool hat would be good.","s":"林"},{"j":"[課長|かちょう|0]が[いつも||39][持っ|もっ|40]ている[かばん||41]は[青い|あおい|42]ですね。","e":"The bag the chief always carries is blue, isn't it?","s":"マリア"},{"j":"[じゃ||19]、[青い|あおい|42][帽子|ぼうし|36]にしましょう。","e":"Then let's go with a blue hat.","s":"林"}],[{"j":"[土曜日|どようび|43]、[林|はやし||#][さん||11]と[スポーツ||44]の[物|もの]を[売っ|うっ|45]ている[店|みせ|46]へ[行き|いき|47]ました。","e":"On Saturday, Ms. Hayashi and I went to a shop that sells sports gear."},{"j":"[店|みせ|46]の[人|ひと]が[見せ|みせ]た[帽子|ぼうし|36]は、[とても||48][軽かっ|かるかっ|37]たです。","e":"The hat the clerk showed us was very light."},{"j":"[それ||5]から、[会社|かいしゃ|6]の[みんな||7]が[カード||49]を[書き|かき|50]ました。","e":"After that, everyone at the office wrote in a card."}],[{"j":"[金曜日|きんようび|51]の[夜|よる|52]、[みんな||7]で[課長|かちょう|0]と[食事|しょくじ|53]をしました。","e":"On Friday night, we all had dinner with the chief."},{"j":"[課長|かちょう|0]は[プレゼント||1]を[見|み|54]て、「[ありがとう||55]。[大切|たいせつ|56]に[使い|つかい|25]ます」と[言い|いい|33]ました。","e":"The chief looked at the present and said, \"Thank you. I'll take good care of it.\""},{"j":"[課長|かちょう|0]の[目|め|57]は[少し|すこし|58][赤かっ|あかかっ|59]たと[思い|おもい|13]ます。","e":"I think the chief's eyes were a little red."}],[{"j":"[大阪|おおさか||#]は[遠い|とおい|60]と[思い|おもい|13]ます。","e":"Osaka is far, I think."},{"j":"でも、[新幹線|しんかんせん|61]で2[時間|じかん|62][半|はん|63]ぐらいです。","e":"But it's only about two and a half hours by shinkansen."},{"j":"[課長|かちょう|0]は、[わたし||64]が[日本|にほん||#]で[初めて|はじめて|65][働い|はたらい|4]た[会社|かいしゃ|6]の、[初めて|はじめて|65]の[課長|かちょう|0]です。","e":"He's the first section chief at the first company I ever worked for in Japan."}]],"g":[["課長","かちょう","section head",18],["プレゼント","ぷれぜんと","present, gift",7],["来月","らいげつ","next month",5],["事務所","じむしょ","office",3],["働く","はたらく","work",4],["それ","それ","that (thing near the listener)",2],["会社","かいしゃ","company",3],["みんな","みんな","all, everything, everyone",11],["あげる","あげる","give",7],["きのう","きのう","yesterday",4],["昼休み","ひるやすみ","lunchtime",4],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["話す","はなす","speak, talk",14],["思う","おもう","think",21],["コーヒー","こーひー","coffee",2],["好き","すき","like",9],["ええ","ええ","yes",6],["毎朝","まいあさ","every morning",4],["飲む","のむ","drink",6],["じゃ","じゃ","well, then, in that case",3],["おいしい","おいしい","delicious, tasty",8],["どう","どう","how",2],["うーん","うーん","Let me see.",22],["毎日","まいにち","every day",4],["長い","ながい","long",16],["使う","つかう","use",14],["できる","できる","be able to, can",18],["この間","","the other day",20],["最近","さいきん","recently, these days",21],["休み","やすみ","rest, a holiday, a day off",4],["日","ひ","day, date",19],["山","やま","mountain",8],["登る","のぼる","climb, go up",19],["言う","ゆう","entitled ～, named ～, called ～",21],["知る","しる","get to know",15],["かぶる","かぶる","put on (a hat, etc.)",22],["帽子","ぼうし","hat, cap",22],["軽い","かるい","light (of weight)",12],["涼しい","すずしい","cool",12],["いつも","いつも","always, usually",6],["持つ","もつ","hold",14],["かばん","かばん","bag, briefcase",2],["青い","あおい","blue",8],["土曜日","どようび","Saturday",4],["スポーツ","すぽーつ","sport (～を します : play sports)",9],["売る","うる","sell",15],["店","みせ","store, shop",6],["行く","いく","go",5],["とても","とても","very",8],["カード","かーど","(credit) card",2],["書く","かく","write (かきます can also mean to draw or paint, but in this case it is written with hiragana in this book)",6],["金曜日","きんようび","Friday",4],["夜","よる","night, evening",4],["食事","しょくじ","have a meal, dine",13],["見る","みる","see, look at, watch",6],["ありがとう","ありがとう","Thank you [very much].",2],["大切","たいせつ","important, precious",17],["目","め","eye",16],["少し","すこし","a little, a few",9],["赤い","あかい","red",8],["遠い","とおい","far",12],["新幹線","しんかんせん","the Shinkansen, the bullet train",5],["時間","じかん","time",9],["半","はん","half",4],["わたし","わたし","I",1],["初めて","はじめて","for the first time",12]],"sp":{"山田":["m","やまだ"],"林":["f","はやし"],"マリア":["f","まりあ"]}},
+{"id":"R25a","l":25,"f":[23,25],"t":"[二|ふた]つの[コンビニ||0]","te":"The two convenience stores","a":"Directions that seemed simple, a wrong turn in the rain, and a stranger who walks her there.","p":[[{"j":"[日曜日|にちようび|1]、アヤ[さん||2]の[うち||3]へ[遊び|あそび|4]に[行き|いき|5]ました。","e":"On Sunday, I went to visit Aya at her place."},{"j":"アヤ[さん||2]は[先月|せんげつ|6]、[新しい|あたらしい|7][うち||3]に[引っ越し|ひっこし|8]ました。","e":"Aya moved to a new place last month."},{"j":"アヤ[さん||2]は[駅|えき|9]からの[道|みち|10]を[教え|おしえ|11]てくれました。","e":"Aya told me the way from the station."}],[{"j":"[駅|えき|9]を[出|で|12]て、[まっすぐ||13][行く|いく|5]と、[大きい|おおきい|14][交差点|こうさてん|15]があるよ。","e":"When you leave the station and go straight, there's a big intersection.","s":"アヤ"},{"j":"[その||16][交差点|こうさてん|15]を[右|みぎ|17]へ[曲がっ|まがっ|18]て。","e":"Turn right at that intersection.","s":"アヤ"},{"j":"[二|ふた]つ[目|め|19]の[信号|しんごう|20]を[左|ひだり|21]へ[曲がる|まがる|18]と、[コンビニ||0]がある。","e":"Turn left at the second traffic light and there's a convenience store.","s":"アヤ"},{"j":"[うち||3]は[その||16][コンビニ||0]の[隣|となり|22]だよ。","e":"My place is next to that convenience store.","s":"アヤ"},{"j":"[わかっ||23]た。[簡単|かんたん|24]だね。","e":"Got it. Easy.","s":"マリア"}],[{"j":"[駅|えき|9]を[出|で|12]た[とき||25]、[雨|あめ|26]が[降っ|ふっ|27]ていました。","e":"When I came out of the station, it was raining."},{"j":"[わたし||28]は[傘|かさ|29]を[持っ|もっ|30]ていましたから、[大丈夫|だいじょうぶ|31]でした。","e":"I had my umbrella, so it was fine."},{"j":"[まっすぐ||13][行き|いき|5]ました。","e":"I went straight."},{"j":"[交差点|こうさてん|15]を[右|みぎ|17]へ[曲がっ|まがっ|18]て、[信号|しんごう|20]を[左|ひだり|21]へ[曲がり|まがり|18]ました。","e":"I turned right at the intersection, then left at the light."},{"j":"[コンビニ||0]がありました。","e":"There was a convenience store."},{"j":"でも、[隣|となり|22]に[うち||3]がありませんでした。","e":"But there was no house next to it."},{"j":"[隣|となり|22]は[駐車場|ちゅうしゃじょう|32]でした。","e":"Next to it was a parking lot."}],[{"j":"[もう||33][一度|いちど|34]、[前|まえ|35]の[道|みち|10]を[見る|みる|36]と、[もう||33][一|ひと]つ[コンビニ||0]がありました。","e":"When I looked down the road again, there was another convenience store."},{"j":"でも、[その||16][隣|となり|22]も[うち||3]じゃありませんでした。","e":"But next to that one wasn't a house either."},{"j":"[道|みち|10]が[わから||23]なくなりました。","e":"I got lost."}],[{"j":"[その||16][とき||25]、[男|おとこ|37]の[人|ひと|37]が[来|き|38]ました。","e":"Just then, a man came along."},{"j":"[すみ||39]ません、[桜町|さくらまち||#]は[どこ||40]ですか。","e":"Excuse me, where is Sakuramachi?","s":"マリア"},{"j":"[桜|さくら|41][町|まち|42]ですか。[この||43][道|みち|10]じゃありませんよ。","e":"Sakuramachi? It's not this street.","s":"男の人"},{"j":"[あなた||44]が[曲がっ|まがっ|18]た[信号|しんごう|20]は[二|ふた]つ[目|め|19]じゃなくて、[一|ひと]つ[目|め|19]でしょう？","e":"The light you turned at was the first one, not the second, wasn't it?","s":"男の人"},{"j":"あ……そうです。","e":"Oh… it was.","s":"マリア"},{"j":"[わたし||28]も[同じ|おなじ|45][方|ほう]へ[行き|いき|5]ますから、[いっしょ||46]に[行き|いき|5]ましょう。","e":"I'm going the same way, so let's go together.","s":"男の人"}],[{"j":"[男|おとこ|37]の[人|ひと|37]はアヤ[さん||2]の[うち||3]の[前|まえ|35]まで、[いっしょ||46]に[来|き|38]てくれました。","e":"The man came with me all the way to the front of Aya's place."},{"j":"[本当|ほんとう|47]に[ありがとう||48][ござい||48]ました。","e":"Thank you so much.","s":"マリア"},{"j":"[いいえ||49]、[いいえ||49]。","e":"Not at all, not at all.","s":"男の人"}],[{"j":"[遅かっ|おそかっ|50]たね！[大丈夫|だいじょうぶ|31]？","e":"You're late! Are you okay?","s":"アヤ"},{"j":"[うん||51]。[道|みち|10]が[わから||23]なかった[とき||25]、[親切|しんせつ|52]な[人|ひと]が[いっしょ||46]に[来|き|38]てくれたよ。","e":"Yeah. When I didn't know the way, a kind person came with me.","s":"マリア"},{"j":"よかった。[次|つぎ|53]に[来る|くる|38][とき||25]、[駅|えき|9]に[着い|つい|54]たら[電話|でんわ|55]してね。","e":"Good. Next time you come, call me when you get to the station.","s":"アヤ"},{"j":"[雨|あめ|26]が[降っ|ふっ|27]ても、[駅|えき|9]まで[行く|いく|5]から。","e":"Even if it's raining, I'll come to the station.","s":"アヤ"},{"j":"[ありがとう||56]。","e":"Thanks.","s":"マリア"},{"j":"でも、[次|つぎ|53]は[もう||33][大丈夫|だいじょうぶ|31]。[コンビニ||0]が[二|ふた]つあっても、[わかる||23]よ。","e":"But next time I'll be fine. Even if there are two convenience stores, I'll know.","s":"マリア"}]],"g":[["コンビニ","こんびに","convenience store",10],["日曜日","にちようび","Sunday",4],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["うち","うち","house, home",3],["遊ぶ","あそぶ","enjoy oneself, play",13],["行く","いく","go",5],["先月","せんげつ","last month",5],["新しい","あたらしい","new, fresh",8],["引っ越す","ひっこす","move [house]",23],["駅","えき","station",5],["道","みち","road, way",23],["教える","おしえる","teach",7],["出る","でる","go out [of a coffee shop]",13],["まっすぐ","まっすぐ","straight",14],["大きい","おおきい","big, large",8],["交差点","こうさてん","crossroads",23],["その","その","that ～, that ～ near the listener",2],["右","みぎ","right [side]",10],["曲がる","まがる","turn [to the right]",14],["目","め","eye",16],["信号","しんごう","traffic light",23],["左","ひだり","left [side]",10],["隣","となり","next, next door",10],["わかる","わかる","understand",6],["簡単","かんたん","easy, simple",12],["とき","とき","－ o'clock",4],["雨","あめ","rain, rainy",12],["降る","ふる","rain, fall [rain/snow]",14],["わたし","わたし","I",1],["傘","かさ","umbrella",2],["持つ","もつ","hold",14],["大丈夫","だいじょうぶ","all right",17],["駐車場","ちゅうしゃじょう","car park, parking lot",23],["もう","もう","already",7],["一度","いちど","once",19],["前","まえ","front, before",10],["見る","みる","see, look at, watch",6],["男の人","","man",10],["来る","くる","come",5],["すみません","すむ","Excuse me.",3],["どこ","どこ","where, what place",3],["桜","さくら","cherry (blossom)",8],["町","まち","town, city",8],["この","この","this ～, this ～ here",2],["あなた","あなた","you",1],["同じ","おなじ","the same",21],["いっしょ","いっしょ","together",6],["本当","ほんとう","true",18],["ありがとうございました","","Thank you very much.",4],["いいえ","いいえ","no",1],["遅い","おそい","slow, late",12],["うん","うん","yes (an informal equivalent of はい)",20],["親切","しんせつ","helpful, kind, considerate (not used about one's own family members)",8],["次","つぎ","next",5],["着く","つく","arrive",25],["電話","でんわ","telephone handset, telephone call",3],["ありがとう","ありがとう","Thank you [very much].",2]],"sp":{"アヤ":["f","あや"],"マリア":["f","まりあ"],"男の人":["m","おとこのひと"]}},
+{"id":"R27a","l":27,"f":[24,27],"t":"[海|うみ|0]の[見える|みえる|1][部屋|へや|2]","te":"A room with a sea view","a":"A new apartment, a neighbor who explains garbage day, and a lesson learned at 8:10 a.m.","p":[[{"j":"[先週|せんしゅう|3]、[鎌倉|かまくら||#]の[近く|ちかく|4]の[アパート||5]に[引っ越し|ひっこし|6]ました。","e":"Last week, I moved into an apartment near Kamakura."},{"j":"[前|まえ|7]の[うち||8]より[少し|すこし|9][古い|ふるい|10]です。","e":"It's a little older than my last place."},{"j":"でも、[部屋|へや|2]は[広く|ひろく|11]て、[窓|まど|12]から[海|うみ|0]が[見え|みえ|1]ます。","e":"But the room is spacious, and I can see the sea from the window."},{"j":"[天気|てんき|13]がいい[日|ひ|14]は、[富士山|ふじさん||#]も[見え|みえ|1]ます。","e":"On clear days, I can see Mt. Fuji too."},{"j":"[夜|よる|15]は[とても||16][静か|しずか|17]で、[波|なみ|18]の[音|おと|19]が[聞こえ|きこえ|20]ます。","e":"At night it's very quiet, and I can hear the waves."},{"j":"[近く|ちかく|4]に[店|みせ|21]は[一|ひと]つしかありません。","e":"There's only one shop nearby."},{"j":"でも、[わたし||22]は[この||23][部屋|へや|2]が[とても||16][好き|すき|24]です。","e":"But I really love this room."}],[{"j":"[引っ越し|ひっこし|6]た[日|ひ|14]の[夜|よる|15]、[となり||25]の[鈴木|すずき||#][さん||26]が[来|き|27]ました。","e":"On the evening I moved in, Mrs. Suzuki from next door came over."},{"j":"[鈴木|すずき||#][さん||26]は80[歳|さい|28]の[お||29][ばあ||29][さん||29]です。","e":"Mrs. Suzuki is an 80-year-old lady."},{"j":"こんばんは。[となり||25]の[鈴木|すずき||#]です。","e":"Good evening. I'm Suzuki, from next door.","s":"鈴木"},{"j":"マリア[さん||26]、[ごみ||30]を[出す|だす|31][日|ひ|14]は[わかり||32]ますか。","e":"Maria, do you know which days to put out the garbage?","s":"鈴木"},{"j":"[いいえ||33]、[わから||32]ないんです。[教え|おしえ|34]ていただけませんか。","e":"No, I don't. Could you tell me?","s":"マリア"},{"j":"[燃える|もえる|35][ごみ||35]は[月曜日|げつようび|36]と[木曜日|もくようび|37]です。","e":"Burnable garbage is Monday and Thursday.","s":"鈴木"},{"j":"[朝|あさ|38]8[時|じ|39]までに[出し|だし|31]てくださいね。","e":"Put it out by 8 in the morning, okay?","s":"鈴木"},{"j":"[缶|かん|40]や[瓶|びん|41]は[何曜日|なんようび]に[出す|だす|31]んですか。","e":"What day do cans and bottles go out?","s":"マリア"},{"j":"[缶|かん|40]と[瓶|びん|41]は[水曜日|すいようび|42]ですよ。","e":"Cans and bottles are Wednesday.","s":"鈴木"},{"j":"[すみ||43]ません、[ちょっと||44][覚え|おぼえ|45]られないんですが……","e":"Sorry, I don't think I can remember all that…","s":"マリア"},{"j":"[大丈夫|だいじょうぶ|46]ですよ。[この||23][紙|かみ|47]を[あげ||48]ます。[ごみ||30]の[日|ひ|14]は[全部|ぜんぶ|49][ここ||50]にありますから。","e":"Don't worry. I'll give you this paper. All the garbage days are on here.","s":"鈴木"},{"j":"[ありがとう||51][ござい||51]ます。あ、[漢字|かんじ|52]が[たくさん||53]ありますね。","e":"Thank you so much. Oh, there's a lot of kanji.","s":"マリア"},{"j":"[わたし||22]は[漢字|かんじ|52]が[あまり||54][読め|よめ|55]ないんです。","e":"I can't really read much kanji.","s":"マリア"},{"j":"[じゃ||56]、[ひらがな||57]で[書き|かき|58]ましょうか。","e":"Then shall I write it in hiragana?","s":"鈴木"}],[{"j":"[鈴木|すずき||#][さん||26]は[紙|かみ|47]に[ひらがな||57]で[書い|かい|58]てくれました。","e":"Mrs. Suzuki wrote it out for me in hiragana."},{"j":"[とても||16][親切|しんせつ|59]な[人|ひと]です。","e":"She's a really kind person."}],[{"j":"[その||60][夜|よる|15]、[上|うえ|61]の[部屋|へや|2]から[ピアノ||62]の[音|おと|19]が[聞こえ|きこえ|20]ました。","e":"That night, I could hear a piano from the room upstairs."},{"j":"[とても||16][上手|じょうず|63]でした。","e":"It was very good."},{"j":"[わたし||22]も[ピアノ||62]が[弾け|ひけ|64]たら、いいんですが……","e":"If only I could play the piano too…"}],[{"j":"[木曜日|もくようび|37]の[朝|あさ|38]、[起きる|おきる|65]と、8[時|じ|39]10[分|ぷん|66]でした！","e":"Thursday morning, when I woke up, it was 8:10!"},{"j":"[わたし||22]は[すぐ||67][ごみ||30]を[持っ|もっ|68]て、[外|そと|69]へ[出|で|70]ました。","e":"I grabbed the garbage right away and went outside."},{"j":"[外|そと|69]に[鈴木|すずき||#][さん||26]が[い||71]ました。","e":"Mrs. Suzuki was outside."},{"j":"マリア[さん||26]、[きょう||72]の[ごみ||30]は[もう||73][出せ|だせ|74]ないんですよ。","e":"Maria, you can't put out today's garbage anymore, you know.","s":"鈴木"},{"j":"え、8[時|じ|39]10[分|ぷん|66]は[もう||73][出せ|だせ|74]ないんですか。","e":"What, I can't put it out at 8:10?","s":"マリア"},{"j":"[ええ||75]。[月曜日|げつようび|36]まで[待っ|まっ|76]てくださいね。","e":"That's right. Please wait until Monday.","s":"鈴木"},{"j":"[はい||77]……","e":"Okay…","s":"マリア"}],[{"j":"[その||60][日|ひ|14]、[わたし||22]は[時計|とけい|78]を[二|ふた]つ[買い|かい|79]ました。","e":"That day, I bought two clocks."}]],"g":[["海","うみ","sea, ocean",12],["見える","みえる","[a mountain] can be seen",27],["部屋","へや","room",3],["先週","せんしゅう","last week",5],["近く","ちかく","near, vicinity",10],["アパート","あぱーと","apartment",22],["引っ越す","ひっこす","move [house]",23],["前","まえ","front, before",10],["うち","うち","house, home",3],["少し","すこし","a little, a few",9],["古い","ふるい","old (not used to describe a person's age)",8],["広い","ひろい","wide, spacious",13],["窓","まど","window",10],["天気","てんき","weather",12],["日","ひ","day, date",19],["夜","よる","night, evening",4],["とても","とても","very",8],["静か","しずか","quiet",8],["波","なみ","wave",27],["音","おと","sound",23],["聞こえる","きこえる","[a sound] can be heard",27],["店","みせ","store, shop",6],["わたし","わたし","I",1],["この","この","this ～, this ～ here",2],["好き","すき","like",9],["となり","となり","next, next door",10],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["来る","くる","come",5],["歳","さい","－ years old",1],["おばあさん","","grandmother, old woman",24],["ごみ","ごみ","garbage, rubbish, dust",26],["出す","だす","send [a letter]",13],["わかる","わかる","understand",6],["いいえ","いいえ","no",1],["教える","おしえる","teach",7],["燃えるごみ","","burnable rubbish",26],["月曜日","げつようび","Monday",4],["木曜日","もくようび","Thursday",4],["朝","あさ","morning",4],["時","じ","－ o'clock",4],["缶","かん","can",26],["瓶","びん","bottle",26],["水曜日","すいようび","Wednesday",4],["すみません","すむ","Excuse me.",3],["ちょっと","ちょっと","a little while, a little bit",6],["覚える","おぼえる","memorise",17],["大丈夫","だいじょうぶ","all right",17],["紙","かみ","paper",7],["あげる","あげる","give",7],["全部","ぜんぶ","all",11],["ここ","ここ","here, this place",3],["ありがとうございます","","ありがとうございます",2],["漢字","かんじ","Chinese characters",9],["たくさん","たくさん","many, much",9],["あまり","あまり","not so (used with negatives)",8],["読める","よめる","read",6],["じゃ","じゃ","well, then, in that case",3],["ひらがな","ひらがな","hiragana script",9],["書く","かく","write (かきます can also mean to draw or paint, but in this case it is written with hiragana in this book)",6],["親切","しんせつ","helpful, kind, considerate (not used about one's own family members)",8],["その","その","that ～, that ～ near the listener",2],["上","うえ","on, above, over",10],["ピアノ","ぴあの","piano",18],["上手","じょうず","good at",9],["弾く","ひく","play (stringed instrument, piano, etc.)",18],["起きる","おきる","get up, wake up",4],["分","ぷん","－ minute",4],["すぐ","すぐ","immediately",14],["持つ","もつ","hold",14],["外","そと","outside",10],["出る","でる","go out [of a coffee shop]",13],["いる","いる","exist, be (referring to animate things)",10],["きょう","きょう","today",4],["もう","もう","already",7],["出せる","だせる","send [a letter]",13],["ええ","ええ","yes",6],["待つ","まつ","wait",14],["はい","はい","yes",1],["時計","とけい","watch, clock",2],["買う","かう","buy",6]],"sp":{"鈴木":["f","すずき"],"マリア":["f","まりあ"]}},
+{"id":"R30a","l":30,"f":[28,30],"t":"[夜|よる|0]の[地震|じしん|1]","te":"The earthquake at night","a":"A 2 a.m. quake, a broken glass, and a friend who insists on an emergency bag.","p":[[{"j":"[きのう||2]の[夜|よる|0]、[わたし||3]は[ベッド||4]で[音楽|おんがく|5]を[聞き|きき|6]ながら、[本|ほん|7]を[読ん|よん|8]でいました。","e":"Last night, I was in bed reading a book while listening to music."},{"j":"2[時|じ|9][ごろ||10]、[大きい|おおきい|11][地震|じしん|1]がありました。","e":"Around 2 a.m., there was a big earthquake."},{"j":"[わたし||3]は[すぐ||12][テーブル||13]の[下|した|14]に[入り|はいり|15]ました。","e":"I got under the table right away."},{"j":"[地震|じしん|1]は1[分|ぷん|16]ぐらいで[止まり|とまり|17]ました。","e":"The earthquake stopped after about a minute."}],[{"j":"[部屋|へや|18]の[電気|でんき|19]が[消え|きえ|20]ていました。","e":"The lights in the room were out."},{"j":"[わたし||3]は[懐中電灯|かいちゅうでんとう|21]を[持っ|もっ|22]ていませんでした。","e":"I didn't have a flashlight."},{"j":"[スマホ||23|*]で[部屋|へや|18]を[見る|みる|24]と、[棚|たな|25]の[上|うえ|26]の[コップ||27]が[割れ|われ|28]ていました。","e":"When I looked around the room with my phone, the glass on the shelf was broken."},{"j":"[窓|まど|29]も[開い|あい|30|!]ていました。","e":"The window was open too."},{"j":"[その||31][夜|よる|0]は、[もう||32][寝|ね|33]られませんでした。","e":"I couldn't sleep any more that night."}],[{"j":"[朝|あさ|34]、アヤ[さん||35]から[電話|でんわ|36]がありました。","e":"In the morning, I got a call from Aya."},{"j":"マリア、[大丈夫|だいじょうぶ|37]？","e":"Maria, are you okay?","s":"アヤ"},{"j":"[うん||38]、[わたし||3]は[大丈夫|だいじょうぶ|37]。でも、[コップ||27]が[一|ひと]つ[割れ|われ|28]てしまった。","e":"Yeah, I'm fine. But one of my glasses broke.","s":"マリア"},{"j":"よかった……。ねえ、マリアは[非常袋|ひじょうぶくろ|39]、[準備|じゅんび|40]してある？","e":"Thank goodness… Hey, do you have an emergency bag ready?","s":"アヤ"},{"j":"[非常袋|ひじょうぶくろ|39]？ないよ。","e":"An emergency bag? I don't.","s":"マリア"},{"j":"え！[日本|にほん||#]に[住ん|すん|41]でいるし、[うち||42]は[海|うみ|43]の[近く|ちかく|44]だし、[準備|じゅんび|40]しておかなければならないよ。","e":"What! You live in Japan, your place is near the sea — you've got to have one ready.","s":"アヤ"},{"j":"そうだね。[何|なに]を[入れ|いれ|45]ておくの？","e":"You're right. What should I put in it?","s":"マリア"},{"j":"[水|みず|46]、[食べ物|たべもの|47]、[懐中電灯|かいちゅうでんとう|21]、[ラジオ||48]、[電池|でんち|49]、[薬|くすり|50]……。","e":"Water, food, a flashlight, a radio, batteries, medicine…","s":"アヤ"},{"j":"[週末|しゅうまつ|51]、[いっしょ||52]に[買い|かい|53]に[行こう|いこう|54]。","e":"Let's go buy them together this weekend.","s":"アヤ"}],[{"j":"[土曜日|どようび|55]、アヤ[さん||35]と[買い物|かいもの|56]に[行き|いき|54]ました。","e":"On Saturday, I went shopping with Aya."},{"j":"[水|みず|46]と[食べ物|たべもの|47]を[たくさん||57][買っ|かっ|53]ておきました。","e":"I bought plenty of water and food in advance."},{"j":"[懐中電灯|かいちゅうでんとう|21]も[二|ふた]つ[買い|かい|53]ました。","e":"I also bought two flashlights."},{"j":"アヤ[さん||35]は[店|みせ|58]の[人|ひと]と[話し|はなし|59]ながら、[いろいろ||60]な[物|もの]を[見|み|24]ていました。","e":"Aya was looking at all sorts of things while chatting with the clerk."},{"j":"アヤ[さん||35]は[料理|りょうり|61]も[上手|じょうず|62]だし、こう[いう||63]ことも[よく||64][知っ|しっ|65]て[い||65]ます。","e":"Aya is good at cooking, and she knows a lot about this kind of thing too."}],[{"j":"[今|いま|66]、[非常袋|ひじょうぶくろ|39]は[玄関|げんかん|67]に[置い|おい|68]てあります。","e":"Now my emergency bag is kept by the front door."},{"j":"[中|なか|69]に[水|みず|46]と[食べ物|たべもの|47]と[薬|くすり|50]が[入れ|いれ|45]てあります。","e":"Water, food and medicine are packed inside."},{"j":"[懐中電灯|かいちゅうでんとう|21]は[ベッド||4]の[近く|ちかく|44]に[置い|おい|68]てあります。","e":"A flashlight is kept near my bed."},{"j":"[毎晩|まいばん|70][寝る|ねる|33][前|まえ|71]に、[窓|まど|29]を[閉め|しめ|72]ておきます。","e":"Every night before bed, I close the windows."},{"j":"[それ||73]から、1[か月|かげつ|74]に1[回|かい|75]、[非常袋|ひじょうぶくろ|39]の[中|なか|69]を[見|み|24]ています。","e":"And once a month, I check what's inside the emergency bag."},{"j":"[コップ||27]は[今|いま|66]、[棚|たな|25]の[下|した|14]に[置い|おい|68]てあります。","e":"My glasses are now kept on the shelf below."}]],"g":[["夜","よる","night, evening",4],["地震","じしん","earthquake",29],["きのう","きのう","yesterday",4],["わたし","わたし","I",1],["ベッド","べっど","bed",10],["音楽","おんがく","music",9],["聞く","きく","hear, listen",6],["本","ほん","book",2],["読む","よむ","read",6],["時","じ","－ o'clock",4],["ごろ","ごろ","about ～ (time)",13],["大きい","おおきい","big, large",8],["すぐ","すぐ","immediately",14],["テーブル","てーぶる","table",10],["下","した","under, below, beneath",10],["入る","はいる","enter [a coffee shop]",13],["分","ぷん","－ minute",4],["止まる","とまる","[a car] stop, park",29],["部屋","へや","room",3],["電気","でんき","electricity, light",1],["消える","きえる","[a light] go off",29],["懐中電灯","かいちゅうでんとう","torch, flashlight",30],["持つ","もつ","hold",14],["スマホ","すまほ","smartphone",0],["見る","みる","see, look at, watch",6],["棚","たな","shelf",10],["上","うえ","on, above, over",10],["コップ","こっぷ","glass (vessel)",29],["割れる","われる","[a glass] break, smash",29],["窓","まど","window",10],["開く","ひらく","set up [a class], open, hold",27],["その","その","that ～, that ～ near the listener",2],["もう","もう","already",7],["寝る","ねる","sleep, go to bed",4],["朝","あさ","morning",4],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["電話","でんわ","telephone handset, telephone call",3],["大丈夫","だいじょうぶ","all right",17],["うん","うん","yes (an informal equivalent of はい)",20],["非常袋","ひじょうぶくろ","emergency kit",30],["準備","じゅんび","preparation (～［を］します : prepare)",24],["住む","すむ","be going to live",15],["うち","うち","house, home",3],["海","うみ","sea, ocean",12],["近く","ちかく","near, vicinity",10],["入れる","いれる","put in, insert",16],["水","みず","water",6],["食べ物","たべもの","food",8],["ラジオ","らじお","radio",2],["電池","でんち","battery",10],["薬","くすり","medicine",17],["週末","しゅうまつ","weekend",13],["いっしょ","いっしょ","together",6],["買う","かう","buy",6],["行く","いく","go",5],["土曜日","どようび","Saturday",4],["買い物","かいもの","do shopping",13],["たくさん","たくさん","many, much",9],["店","みせ","store, shop",6],["話す","はなす","speak, talk",14],["いろいろ","いろいろ","various",10],["料理","りょうり","dish (cooked food), cooking (～を します : cook)",9],["上手","じょうず","good at",9],["いう","いう","say",21],["よく","よく","well, much",9],["知っています","","know",15],["今","いま","now",4],["玄関","げんかん","front door, porch, entrance hall",30],["置く","おく","put",15],["中","なか","in, inside",10],["毎晩","まいばん","every evening",4],["前","まえ","front, before",10],["閉める","しめる","close, shut",14],["それ","それ","that (thing near the listener)",2],["か月","かげつ","－ month(s)",11],["回","かい","－ times",11]],"sp":{"アヤ":["f","あや"],"マリア":["f","まりあ"]}},
+{"id":"R33a","l":33,"f":[31,33],"t":"[富士山|ふじさん||#]に[登ろう|のぼろう|0]","te":"Let's climb Mt. Fuji","a":"Plans, warnings, a sign she can't read, and the summit at sunrise.","p":[[{"j":"[今年|ことし|1]の[夏|なつ|2]、[富士山|ふじさん||#]に[登ろう|のぼろう|0]と[思っ|おもっ|3]ています。","e":"This summer, I'm thinking of climbing Mt. Fuji."},{"j":"アヤ[さん||4]と[いっしょ||5]に[登る|のぼる|0]つもりです。","e":"I plan to climb it together with Aya."},{"j":"7[月|がつ|6]の[終わり|おわり|7]に[登る|のぼる|0][予定|よてい|8]です。","e":"We're scheduled to climb at the end of July."}],[{"j":"[会社|かいしゃ|9]で[林|はやし||#][さん||4]に[話し|はなし|10]ました。","e":"I told Ms. Hayashi about it at work."},{"j":"[林|はやし||#][さん||4]は[去年|きょねん|11]、[富士山|ふじさん||#]に[登り|のぼり|0]ました。","e":"Ms. Hayashi climbed Mt. Fuji last year."},{"j":"[夏|なつ|2]ですが、[富士山|ふじさん||#]の[上|うえ|12]は[とても||13][寒い|さむい|14]ですよ。","e":"It's summer, but the top of Mt. Fuji is really cold.","s":"林"},{"j":"[セーター||15]を[持っ|もっ|16]て[行っ|いっ|17]たほうがいいですよ。","e":"You'd better bring a sweater.","s":"林"},{"j":"[それ||18]から、1[日|にち|19]で[登ら|のぼら|0]ないほうがいいです。","e":"And you'd better not climb it in one day.","s":"林"},{"j":"[山|やま|20]の[上|うえ|12]に[泊まる|とまる|21][所|ところ|22]がありますから、[そこ||23]に[泊まっ|とまっ|21]たほうがいいですよ。","e":"There are places to stay up on the mountain, so you'd better stay at one.","s":"林"},{"j":"[天気|てんき|24]は[どう||25]でしょうか。","e":"What do you think the weather will be like?","s":"マリア"},{"j":"[山|やま|20]の[天気|てんき|24]は[朝|あさ|26]と[昼|ひる|27]で[全然|ぜんぜん|28][違い|ちがい|29]ます。","e":"Mountain weather is totally different in the morning and at noon.","s":"林"},{"j":"[朝|あさ|26][晴れ|はれ|30]ていても、[昼|ひる|27]は[雨|あめ|31]が[降る|ふる|32]かもしれません。","e":"Even if it's sunny in the morning, it might rain at noon.","s":"林"},{"j":"[それ||18]から、[頭|あたま|33]が[痛く|いたく|34]なったら、[すぐ||35][下り|おり|36]てください。","e":"Also, if you get a headache, come down right away.","s":"林"},{"j":"[無理|むり|37]をしないほうがいいですよ。","e":"You'd better not push yourself.","s":"林"},{"j":"[わかり||38]ました。[ありがとう||39][ござい||39]ます。","e":"Understood. Thank you.","s":"マリア"}],[{"j":"[次の日|つぎのひ|40]、[林|はやし||#][さん||4]は[会社|かいしゃ|9]を[休み|やすみ|41]ました。","e":"The next day, Ms. Hayashi was off work."},{"j":"[わたし||42]は[懐中電灯|かいちゅうでんとう|43]を[借り|かり|44]たかったんです。","e":"I had wanted to borrow her flashlight."},{"j":"[山田|やまだ||#][さん||4]、[林|はやし||#][さん||4]に、[あした||45][電話|でんわ|46]を[ください||47]、と[伝え|つたえ|48]ていただけませんか。","e":"Mr. Yamada, could you please tell Ms. Hayashi to call me tomorrow?","s":"マリア"},{"j":"いいですよ。[伝え|つたえ|48]ておきます。","e":"Sure. I'll let her know.","s":"山田"}],[{"j":"7[月|がつ|6]30[日|にち|19]、アヤ[さん||4]と[富士山|ふじさん||#]に[登り|のぼり|0]ました。","e":"On July 30th, Aya and I climbed Mt. Fuji."},{"j":"[登っ|のぼっ|0]ている[とき||49]、[大きい|おおきい|50][字|じ|51]で「[止まれ|とまれ|52]」と[書い|かい|53]てありました。","e":"While we were climbing, something was written in big letters: 止まれ."},{"j":"マリア、[止まっ|とまっ|52]て！","e":"Maria, stop!","s":"アヤ"},{"j":"え、[どう||54][し||54]て？","e":"Huh, why?","s":"マリア"},{"j":"[あそこ||55]に「[止まれ|とまれ|52]」と[書い|かい|53]てあるよ。","e":"It says 止まれ over there.","s":"アヤ"},{"j":"「[止まれ|とまれ|52]」は[どういう||56][意味|いみ|57]？","e":"What does 止まれ mean?","s":"マリア"},{"j":"「[止まっ|とまっ|52]てください」と[いう||58][意味|いみ|57]だよ。","e":"It means \"please stop.\"","s":"アヤ"},{"j":"[その||59][道|みち|60]は「[立入|たちいり|61][禁止|きんし|61]」だから、[入っ|はいっ|62]てはいけないよ。","e":"That path is \"No Entry,\" so you can't go in.","s":"アヤ"}],[{"j":"[夜|よる|63]は[山|やま|20]の[上|うえ|12]に[泊まっ|とまっ|21]て、[朝|あさ|26]2[時|じ|64]に[起き|おき|65]ました。","e":"We spent the night up on the mountain and got up at 2 a.m."},{"j":"[とても||13][寒かっ|さむかっ|14]たです。","e":"It was really cold."},{"j":"[セーター||15]を[持っ|もっ|16]て[行き|いき|17]ましたから、[大丈夫|だいじょうぶ|66]でした。","e":"I'd brought a sweater, so I was okay."},{"j":"4[時半|じはん|67][ごろ||68]、[空|そら|69]が[赤く|あかく|70]なりました。","e":"Around 4:30, the sky turned red."},{"j":"アヤ[さん||4]も[わたし||42]も、[何|なに]も[言い|いい|71]ませんでした。","e":"Neither Aya nor I said anything."}],[{"j":"[日本|にほん||#]には「[富士山|ふじさん||#]に[一度|いちど|72]も[登ら|のぼら|0]ない[ばか||73|*]、[二|に][度|ど][登る|のぼる|0][ばか||73|*]」と[いう||58][言葉|ことば|74]があります。","e":"In Japan there's a saying: \"A fool never climbs Mt. Fuji; a fool climbs it twice.\""},{"j":"[来年|らいねん|75]も[また||76][登ろう|のぼろう|0]！","e":"Let's climb it again next year!","s":"アヤ"},{"j":"[わたし||42]は、[もう||77][登ら|のぼら|0]ないつもり。","e":"I'm planning never to climb it again.","s":"マリア"},{"j":"え、[どう||54][し||54]て？","e":"What, why?","s":"アヤ"},{"j":"[ばか||73|*]になりたくないから。","e":"Because I don't want to be a fool.","s":"マリア"}]],"g":[["登る","のぼる","climb, go up",19],["今年","ことし","this year",5],["夏","なつ","summer",12],["思う","おもう","think",21],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["いっしょ","いっしょ","together",6],["月","がつ","-th month of the year",5],["終わり","おわり","the end of ～, The End",20],["予定","よてい","plan, schedule",30],["会社","かいしゃ","company",3],["話す","はなす","speak, talk",14],["去年","きょねん","last year",5],["上","うえ","on, above, over",10],["とても","とても","very",8],["寒い","さむい","cold (referring to temperature)",8],["セーター","せーたー","sweater",22],["持つ","もつ","hold",14],["行く","いく","go",5],["それ","それ","that (thing near the listener)",2],["日","にち","-th day of the month, － day(s)",5],["山","やま","mountain",8],["泊まる","とまる","stay [at a hotel]",19],["所","ところ","place",8],["そこ","そこ","there, that place near the listener",3],["天気","てんき","weather",12],["どう","どう","how",2],["朝","あさ","morning",4],["昼","ひる","daytime, noon",4],["全然","ぜんぜん","not at all (used with negatives)",9],["違う","ちがう","No, it isn't./You are wrong.",2],["晴れる","はれる","clear up",32],["雨","あめ","rain, rainy",12],["降る","ふる","rain, fall [rain/snow]",14],["頭","あたま","head, brain",16],["痛い","いたい","(I) have a pain [in my ～].",17],["すぐ","すぐ","immediately",14],["下りる","おりる","get off [a train]",16],["無理","むり","excessive, impossible",19],["わかる","わかる","understand",6],["ありがとうございます","","ありがとうございます",2],["次の日","つぎのひ","next + -th day of the month, － day(s)",5],["休む","やすむ","take a rest, take a holiday",4],["わたし","わたし","I",1],["懐中電灯","かいちゅうでんとう","torch, flashlight",30],["借りる","かりる","borrow",7],["あした","あした","tomorrow",4],["電話","でんわ","telephone handset, telephone call",3],["くださる","くださる","Give me [～], please.",3],["伝える","つたえる","convey",33],["とき","とき","－ o'clock",4],["大きい","おおきい","big, large",8],["字","じ","letter, character",9],["止まる","とまる","[a car] stop, park",29],["書く","かく","write (かきます can also mean to draw or paint, but in this case it is written with hiragana in this book)",6],["どうして","","why",9],["あそこ","あそこ","that place over there",3],["どういう","どういう","what (kind of ～)",33],["意味","いみ","meaning",24],["いう","いう","say",21],["その","その","that ～, that ～ near the listener",2],["道","みち","road, way",23],["立入禁止","","Keep Out",33],["入る","はいる","enter [a coffee shop]",13],["夜","よる","night, evening",4],["時","じ","－ o'clock",4],["起きる","おきる","get up, wake up",4],["大丈夫","だいじょうぶ","all right",17],["時半","じはん","－ o'clock + half",4],["ごろ","ごろ","about ～ (time)",13],["空","そら","sky",27],["赤い","あかい","red",8],["言う","ゆう","entitled ～, named ～, called ～",21],["一度","いちど","once",19],["ばか","ばか","fool, idiot",0],["言葉","ことば","word, language",20],["来年","らいねん","next year",5],["また","また","again",14],["もう","もう","already",7]],"sp":{"林":["f","はやし"],"マリア":["f","まりあ"],"アヤ":["f","あや"],"山田":["m","やまだ"]}},
+{"id":"R36a","l":36,"f":[34,36],"t":"[鈴木|すずき||#][さん||0]の[みそ汁|みそしる|1|*]","te":"Mrs. Suzuki's miso soup","a":"A cooking lesson next door: do it exactly like this, add this after that, and never boil the miso.","p":[[{"j":"[引っ越し|ひっこし|2]てから、[もう||3]3[か月|かげつ|4]になります。","e":"It's already been three months since I moved."},{"j":"[となり||5]の[鈴木|すずき||#][さん||0]とは、[ときどき||6][いっしょ||7]に[ご飯|ごはん|8]を[食べ|たべ|9]ます。","e":"I sometimes eat with Mrs. Suzuki next door."},{"j":"[先週|せんしゅう|10]、[鈴木|すずき||#][さん||0]が[みそ汁|みそしる|1|*]の[作り方|つくりかた|11]を[教え|おしえ|12]てくれました。","e":"Last week, Mrs. Suzuki taught me how to make miso soup."}],[{"j":"[わたし||13]がするとおりに、してくださいね。","e":"Do it just the way I do, okay?","s":"鈴木"},{"j":"[まず||14]、[鍋|なべ|15]に[水|みず|16]を[入れ|いれ|17]て、[火|ひ|18]を[つけ||19]ます。","e":"First, put water in the pot and turn on the heat.","s":"鈴木"},{"j":"[野菜|やさい|20]は、[お||21][湯|ゆ|21]になった[あと||22]で、[入れ|いれ|17]ます。","e":"Add the vegetables after it's become hot water.","s":"鈴木"},{"j":"[野菜|やさい|20]を5[分|ふん|23]ぐらい[煮|に|24]たら、[火|ひ|18]を[消し|けし|25]ます。","e":"After cooking the vegetables about five minutes, turn off the heat.","s":"鈴木"},{"j":"[それ||26]から、[みそ||27|*]を[入れ|いれ|17]ます。","e":"Then add the miso.","s":"鈴木"},{"j":"[みそ||27|*]は[どの||28]ぐらい[入れれ|いれれ|17]ばいいですか。","e":"How much miso should I put in?","s":"マリア"},{"j":"[この||29][大きい|おおきい|30][スプーン||31]で、[二|ふた]つぐらいですね。","e":"About two of this big spoon.","s":"鈴木"},{"j":"[みそ||27|*]を[入れ|いれ|17]た[あと||22]で、[強い|つよい|32][火|ひ|18]で[煮|に|24]ないでください。","e":"After adding the miso, don't cook it over high heat.","s":"鈴木"},{"j":"[どう||33][し||33]てですか。","e":"Why not?","s":"マリア"},{"j":"[みそ||27|*]の[味|あじ|34]が[悪く|わるく|35]なりますから。","e":"Because the miso's flavor goes bad.","s":"鈴木"}],[{"j":"[何|なに]を[入れれ|いれれ|17]ばいいですか。","e":"What should I put in it?","s":"マリア"},{"j":"[冷蔵庫|れいぞうこ|36]にある[物|もの]を[入れれ|いれれ|17]ばいいんですよ。","e":"Just put in whatever's in the fridge.","s":"鈴木"},{"j":"[野菜|やさい|20]を[変えれ|かえれ|37]ば、[毎日|まいにち|38][違う|ちがう|39][みそ汁|みそしる|1|*]が[でき||40]ます。","e":"If you change the vegetables, you can make a different miso soup every day.","s":"鈴木"},{"j":"[それ||26]に、[みそ汁|みそしる|1|*]なら、[体|からだ|41]にもいいですよ。","e":"And if it's miso soup, it's good for you, too.","s":"鈴木"}],[{"j":"[わたし||13]は[メモ||42]を[書き|かき|43]ながら、[鈴木|すずき||#][さん||0]の[手|て|44]を[見|み|45]ていました。","e":"I watched Mrs. Suzuki's hands while taking notes."},{"j":"[忘れ|わすれ|46]ないように、[うち||47]へ[帰っ|かえっ|48]てから、[もう||3][一度|いちど|49][ノート||50]に[書き|かき|43]ました。","e":"So I wouldn't forget, after I got home I wrote it all in my notebook again."}],[{"j":"[それ||26]から1[か月|かげつ|4]、[毎日|まいにち|38][練習|れんしゅう|51]しました。","e":"After that, I practiced every day for a month."},{"j":"[初め|はじめ|52]は、[ノート||50]を[見|み|45]ないで[作る|つくる|53]ことが[でき||40]ませんでした。","e":"At first, I couldn't make it without looking at my notebook."},{"j":"でも、[今|いま|54]は[ノート||50]を[見|み|45]ないで[作れる|つくれる|55]ようになりました。","e":"But now I've gotten to where I can make it without looking."},{"j":"[毎朝|まいあさ|56]、[みそ汁|みそしる|1|*]を[飲む|のむ|57]ようにしています。","e":"I make a point of having miso soup every morning."}],[{"j":"[きのう||58]、[鈴木|すずき||#][さん||0]に[わたし||13]の[みそ汁|みそしる|1|*]を[飲ん|のん|57]でもらいました。","e":"Yesterday, I had Mrs. Suzuki try my miso soup."},{"j":"あ、[おいしい||59]。","e":"Oh, it's good.","s":"鈴木"},{"j":"でも……[ちょっと||60][甘い|あまい|61]ですね。","e":"But… it's a little sweet.","s":"鈴木"},{"j":"マリア[さん||0]、[砂糖|さとう|62]を[入れ|いれ|17]たんですか。","e":"Maria, did you put sugar in it?","s":"鈴木"},{"j":"……[少し|すこし|63]だけ。","e":"…Just a little.","s":"マリア"},{"j":"[わたし||13]が[教え|おしえ|12]たとおりに[作っ|つくっ|53]てくださいね！","e":"Make it exactly the way I taught you!","s":"鈴木"}]],"g":[["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["みそ汁","みそしる","miso soup",0],["引っ越す","ひっこす","move [house]",23],["もう","もう","already",7],["か月","かげつ","－ month(s)",11],["となり","となり","next, next door",10],["ときどき","ときどき","sometimes",6],["いっしょ","いっしょ","together",6],["ご飯","ごはん","a meal, cooked rice",6],["食べる","たべる","eat",6],["先週","せんしゅう","last week",5],["作り方","つくりかた","to make + how to ～, way of ～ing",15],["教える","おしえる","teach",7],["わたし","わたし","I",1],["まず","まず","first of all",16],["鍋","なべ","pan, pot",34],["水","みず","water",6],["入れる","いれる","put in, insert",16],["火","ひ","fire, heating",34],["つける","つける","turn on",14],["野菜","やさい","vegetable",6],["お湯","","hot water",23],["あと","あと","～ left",14],["分","ふん","－ minute",4],["煮る","にる","cook, boil",34],["消す","けす","turn off",14],["それ","それ","that (thing near the listener)",2],["みそ","みそ","miso (fermented soybean paste)",0],["どの","どの","which ～ (used for three or more)",11],["この","この","this ～, this ～ here",2],["大きい","おおきい","big, large",8],["スプーン","すぷーん","spoon",7],["強い","つよい","strong",19],["どうして","","why",9],["味","あじ","taste",28],["悪い","わるい","bad",8],["冷蔵庫","れいぞうこ","refrigerator",10],["変える","かえる","change",23],["毎日","まいにち","every day",4],["違う","ちがう","No, it isn't./You are wrong.",2],["できる","できる","be able to, can",18],["体","からだ","body, health",16],["メモ","めも","take a memo",28],["書く","かく","write (かきます can also mean to draw or paint, but in this case it is written with hiragana in this book)",6],["手","て","hand, arm",7],["見る","みる","see, look at, watch",6],["忘れる","わすれる","forget",17],["うち","うち","house, home",3],["帰る","かえる","go home, return",5],["一度","いちど","once",19],["ノート","のーと","notebook",2],["練習","れんしゅう","practice (～［を］します : practise)",19],["初め","はじめ","the beginning",20],["作る","つくる","to make",15],["今","いま","now",4],["作れる","つくれる","to make",15],["毎朝","まいあさ","every morning",4],["飲む","のむ","drink",6],["きのう","きのう","yesterday",4],["おいしい","おいしい","delicious, tasty",8],["ちょっと","ちょっと","a little while, a little bit",6],["甘い","あまい","sweet",12],["砂糖","さとう","sugar",14],["少し","すこし","a little, a few",9]],"sp":{"鈴木":["f","すずき"],"マリア":["f","まりあ"]}},
+{"id":"R39a","l":39,"f":[37,39],"t":"[たいへん||0]な[一|いち][日|にち|1]","te":"A rough day","a":"Rained on, stepped on, scolded — and then the day turns around.","p":[[{"j":"[きのう||2]は、[本当|ほんとう|3]に[たいへん||0]な[一|いち][日|にち|1]でした。","e":"Yesterday was a really rough day."}],[{"j":"[朝|あさ|4]、[時計|とけい|5]が[動い|うごい|6]ていなかったので、30[分|ぷん|7][遅く|おそく|8][起き|おき|9]ました。","e":"In the morning, my clock had stopped, so I woke up 30 minutes late."},{"j":"[急い|いそい|10]で[うち||11]を[出|で|12]ましたが、[駅|えき|13]へ[行く|いく|14][途中|とちゅう|15]で、[雨|あめ|16]に[降ら|ふら|17]れました。","e":"I left home in a hurry, but on the way to the station I got caught in the rain."},{"j":"[傘|かさ|18]を[持っ|もっ|19]ていなかったので、[とても||20][困り|こまり|21]ました。","e":"I didn't have an umbrella, so I was in real trouble."},{"j":"[電車|でんしゃ|22]は[とても||20][込ん|こん|23]でいました。","e":"The train was really crowded."},{"j":"[わたし||24]は[隣|となり|25]の[男|おとこ|26]の[人|ひと|26]に[足|あし|27]を[踏ま|ふま|28]れました。","e":"The man next to me stepped on my foot."},{"j":"[とても||20][痛かっ|いたかっ|29]たです。","e":"It really hurt."},{"j":"[それ||30]に、[電車|でんしゃ|22]が[事故|じこ|31]で[遅れ|おくれ|32]て、[会社|かいしゃ|33]に[遅れ|おくれ|32]てしまいました。","e":"On top of that, the train was delayed by an accident, and I was late for work."}],[{"j":"[会社|かいしゃ|33]に[着く|つく|34]と、[課長|かちょう|35]に[呼ば|よば|36]れました。","e":"When I got to the office, the section chief called me over."},{"j":"マリア[さん||37]、[きょう||38]の[会議|かいぎ|39]の[資料|しりょう|40]は[どこ||41]ですか。","e":"Maria, where are the materials for today's meeting?","s":"課長"},{"j":"あ……[すみ||42]ません。[まだ||43][コピー||44]していません。","e":"Oh… I'm sorry. I haven't copied them yet.","s":"マリア"},{"j":"[会議|かいぎ|39]は10[時|じ|45]からですよ。[急い|いそい|10]でください。","e":"The meeting starts at 10. Please hurry.","s":"課長"},{"j":"[わたし||24]は[課長|かちょう|35]に[注意|ちゅうい|46]されて、[とても||20][恥ずかしかっ|はずかしかっ|47]たです。","e":"I got a warning from the chief, and I was really embarrassed."}],[{"j":"[昼休み|ひるやすみ|48]、[外|そと|49]で[パン||50]を[食べ|たべ|51]ていると、[鳥|とり|52]に[取ら|とら|53]れました。","e":"At lunch break, while I was eating bread outside, a bird snatched it."},{"j":"[林|はやし||#][さん||37]に[それ||30]を[見|み|54]られました。","e":"Ms. Hayashi saw the whole thing."},{"j":"[大丈夫|だいじょうぶ|55]？でも、[鳥|とり|52]が[パン||50]を[取る|とる|53]のを、[初めて|はじめて|56][見|み|54]たよ。","e":"You okay? But that's the first time I've ever seen a bird steal bread.","s":"林"},{"j":"[わたし||24]もです。","e":"Me too.","s":"マリア"}],[{"j":"[夕方|ゆうがた|57]、[林|はやし||#][さん||37]に[頼ま|たのま|58]れて、[会議室|かいぎしつ|59]へ[行き|いき|14]ました。","e":"In the evening, Ms. Hayashi asked me to go to the meeting room, so I went."},{"j":"[ドア||60]を[開ける|あける|61]と、[部屋|へや|62]は[暗かっ|くらかっ|63]たです。","e":"When I opened the door, the room was dark."},{"j":"お[誕生日|たんじょうび|64]、[おめでとう||65]！","e":"Happy birthday!","s":"みんな"},{"j":"[電気|でんき|66]が[つい||67]て、[会社|かいしゃ|33]の[みんな||68]が[い||69]ました。","e":"The lights came on, and everyone from the office was there."},{"j":"[テーブル||70]の[上|うえ|71]に[大きい|おおきい|72][チョコレート||73]の[ケーキ||74]がありました。","e":"There was a big chocolate cake on the table."},{"j":"[わたし||24]は、[その||75][日|ひ|1]が[誕生日|たんじょうび|64]だったのを、[忘れ|わすれ|76]ていました。","e":"I had forgotten that it was my birthday that day."},{"j":"マリア[さん||37]が[チョコレート||73]が[好き|すき|77]なのは、[みんな||68][知っ|しっ|78]て[い||78]ますよ。","e":"Everyone knows you like chocolate, Maria.","s":"山田"},{"j":"[けさ||79]は、[すみ||42]ませんでした。","e":"About this morning — I'm sorry.","s":"課長"}],[{"j":"[いちばん||80][うれしかっ||81]たのは、[みんな||68]が[書い|かい|82]てくれた[カード||83]です。","e":"What made me happiest was the card everyone wrote for me."},{"j":"[たいへん||0]な[一|いち][日|にち|1]でしたが、いい[一|いち][日|にち|1]でした。","e":"It was a rough day, but it was a good day."}]],"g":[["たいへん","たいへん","hard, tough, severe, awful",4],["日","にち","-th day of the month, － day(s)",5],["きのう","きのう","yesterday",4],["本当","ほんとう","true",18],["朝","あさ","morning",4],["時計","とけい","watch, clock",2],["動く","うごく","move, work",21],["分","ぷん","－ minute",4],["遅い","おそい","slow, late",12],["起きる","おきる","get up, wake up",4],["急ぐ","いそぐ","hurry",14],["うち","うち","house, home",3],["出る","でる","go out [of a coffee shop]",13],["駅","えき","station",5],["行く","いく","go",5],["途中","とちゅう","on the way, in the midst of",39],["雨","あめ","rain, rainy",12],["降る","ふる","rain, fall [rain/snow]",14],["傘","かさ","umbrella",2],["持つ","もつ","hold",14],["とても","とても","very",8],["困る","こまる","be in trouble, have a problem",26],["電車","でんしゃ","electric train",5],["込む","ごむ","[a road] get crowded",29],["わたし","わたし","I",1],["隣","となり","next, next door",10],["男の人","","man",10],["足","あし","leg, foot",16],["踏む","ふむ","step on (someone's foot)",37],["痛い","いたい","(I) have a pain [in my ～].",17],["それ","それ","that (thing near the listener)",2],["事故","じこ","accident",39],["遅れる","おくれる","be late [for an appointment, etc.]",26],["会社","かいしゃ","company",3],["着く","つく","arrive",25],["課長","かちょう","section head",18],["呼ぶ","よぶ","call",14],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["きょう","きょう","today",4],["会議","かいぎ","meeting, conference (～を します : hold a meeting)",4],["資料","しりょう","materials, data",15],["どこ","どこ","where, what place",3],["すみません","すむ","Excuse me.",3],["まだ","まだ","not yet",7],["コピー","こぴー","copy",14],["時","じ","－ o'clock",4],["注意","ちゅうい","be careful [of the cars]",33],["恥ずかしい","はずかしい","embarrassed, ashamed",39],["昼休み","ひるやすみ","lunchtime",4],["外","そと","outside",10],["パン","ぱん","bread",6],["食べる","たべる","eat",6],["鳥","とり","bird",27],["取る","とる","take, pass",14],["見る","みる","see, look at, watch",6],["大丈夫","だいじょうぶ","all right",17],["初めて","はじめて","for the first time",12],["夕方","ゆうがた","late afternoon",32],["頼む","たのむ","ask, request",37],["会議室","かいぎしつ","conference room, meeting room",3],["ドア","どあ","door",10],["開ける","あける","open",14],["部屋","へや","room",3],["暗い","くらい","dark",16],["誕生日","たんじょうび","birthday",5],["おめでとう","おめでとう","Congratulations. (used on birthdays, at weddings, New Year's Day, etc.)",22],["電気","でんき","electricity, light",1],["つく","つく","[a light] come on, be turned on",29],["みんな","みんな","all, everything, everyone",11],["いる","いる","exist, be (referring to animate things)",10],["テーブル","てーぶる","table",10],["上","うえ","on, above, over",10],["大きい","おおきい","big, large",8],["チョコレート","ちょこれーと","chocolate",2],["ケーキ","けーき","cake",19],["その","その","that ～, that ～ near the listener",2],["忘れる","わすれる","forget",17],["好き","すき","like",9],["知っています","","know",15],["けさ","けさ","this morning",4],["いちばん","いちばん","the most ～ (いちばん うえ : the top)",10],["うれしい","うれしい","glad, happy",30],["書く","かく","write (かきます can also mean to draw or paint, but in this case it is written with hiragana in this book)",6],["カード","かーど","(credit) card",2]],"sp":{"課長":["m","かちょう"],"林":["f","はやし"],"マリア":["f","まりあ"],"山田":["m","やまだ"],"みんな":["m","みんな"]}},
+{"id":"R42a","l":42,"f":[40,42],"t":"[日本語|にほんご|0]の[試験|しけん|1]","te":"The Japanese exam","a":"Studying for the N3, help from people around her, and a very nervous January.","p":[[{"j":"12[月|がつ|2]に、[日本語|にほんご|0]の[試験|しけん|1]を[受け|うけ|3]ます。","e":"In December, I'm taking a Japanese exam."},{"j":"[N||4|*]3の[試験|しけん|1]です。","e":"It's the N3."},{"j":"[合格|ごうかく|5][できる||6]か[どう||7]か、[わかり||8]ません。","e":"I don't know whether I can pass."},{"j":"[試験|しけん|1]のために、[毎朝|まいあさ|9]1[時間|じかん|10][勉強|べんきょう|11]しています。","e":"I study for an hour every morning for the exam."}],[{"j":"[先月|せんげつ|12]、[佐藤|さとう||#][先生|せんせい|13]に[古い|ふるい|14][試験|しけん|1]の[本|ほん|15]を[いただき||16]ました。","e":"Last month, my teacher, Ms. Sato, gave me a book of old exams."},{"j":"[先生|せんせい|13]は[わたし||17]の[作文|さくぶん|18]も[直し|なおし|19]てくださいました。","e":"She even corrected my compositions."},{"j":"[携帯|けいたい|20]の[アプリ||21|*]は、[言葉|ことば|22]を[覚える|おぼえる|23]のに[便利|べんり|24]です。","e":"Phone apps are handy for memorizing words."},{"j":"[電車|でんしゃ|25]の[中|なか|26]で、[毎日|まいにち|27]20[分|ぷん|28]ぐらい[使っ|つかっ|29]ています。","e":"I use them for about 20 minutes on the train every day."}],[{"j":"でも、[聞く|きく|30][問題|もんだい|31]が[いちばん||32][難しい|むずかしい|33]です。","e":"But the listening questions are the hardest."},{"j":"[先週|せんしゅう|34]、[日本語|にほんご|0]の[ニュース||35]を[聞い|きい|30]てみました。","e":"Last week, I tried listening to the news in Japanese."},{"j":"[速く|はやく|36]て、[半分|はんぶん|37]ぐらいしか[わかり||8]ませんでした。","e":"It was fast, and I only understood about half."},{"j":"[それ||38]で、[毎日|まいにち|27]、[日本語|にほんご|0]の[ラジオ||39]を[聞く|きく|30]ようにしました。","e":"So I started making a point of listening to Japanese radio every day."}],[{"j":"11[月|がつ|2]に、[鈴木|すずき||#][さん||40]が1[週間|しゅうかん|41][旅行|りょこう|42]に[行き|いき|43]ました。","e":"In November, Mrs. Suzuki went on a trip for a week."},{"j":"[その||44][間|あいだ|45]、[わたし||17]が[鈴木|すずき||#][さん||40]の[猫|ねこ|46]に[えさ||47]を[やり||48]ました。","e":"While she was away, I fed her cat."},{"j":"[猫|ねこ|46]は[わたし||17]の[隣|となり|49]で[寝|ね|50]ていました。","e":"The cat slept next to me."},{"j":"[わたし||17]は[猫|ねこ|46]の[隣|となり|49]で、[試験|しけん|1]の[本|ほん|15]を[読み|よみ|51]ました。","e":"I read my exam book next to the cat."}],[{"j":"[試験|しけん|1]の[日|ひ|52]、[朝|あさ|53][早く|はやく|54][起き|おき|55]て、[大学|だいがく|56]へ[行き|いき|43]ました。","e":"On exam day, I got up early and went to a university."},{"j":"[試験|しけん|1]を[受ける|うける|3][人|ひと]が[たくさん||57][い||58]ました。","e":"There were a lot of people taking the exam."},{"j":"[答え|こたえ|59]が[わから||8]ない[問題|もんだい|31]が、[いくつ||60]かありました。","e":"There were several questions I didn't know the answer to."},{"j":"[試験|しけん|1]が[終わっ|おわっ|61]てから、[鈴木|すずき||#][さん||40]に「[どう||7]でしたか」と[聞か|きか|30]れました。","e":"After the exam, Mrs. Suzuki asked me, \"How did it go?\""},{"j":"[でき||6]たか[どう||7]か、[全然|ぜんぜん|62][わかり||8]ません。","e":"I have no idea whether I did well.","s":"マリア"},{"j":"[大丈夫|だいじょうぶ|63]。マリア[さん||40]は[毎日|まいにち|27][がんばっ||64]ていましたから。","e":"You'll be fine. You worked hard every single day.","s":"鈴木"}],[{"j":"1[月|がつ|2]、[インターネット||65]で[調べ|しらべ|66]てみました。","e":"In January, I checked online."},{"j":"「[合格|ごうかく|5]」と[書い|かい|67]てありました！","e":"It said \"PASSED\"!"},{"j":"[すぐ||68][佐藤|さとう||#][先生|せんせい|13]に[メール||69]を[送り|おくり|70]ました。","e":"I emailed Ms. Sato right away."},{"j":"[先生|せんせい|13]から「[おめでとう||71]！」と[返事|へんじ|72]を[いただき||16]ました。","e":"I got a reply from her: \"Congratulations!\""},{"j":"[その||44][夜|よる|73]、[鈴木|すずき||#][さん||40]が[ケーキ||74]を[作っ|つくっ|75]てくださいました。","e":"That night, Mrs. Suzuki made me a cake."},{"j":"[猫|ねこ|46]も、[ケーキ||74]を[見|み|76]ていました。","e":"The cat was eyeing the cake too."}],[{"j":"[次|つぎ|77]は、[N||4|*]2のために、[もっと||78][勉強|べんきょう|11]するつもりです。","e":"Next, I plan to study even more for the N2."},{"j":"でも、[きょう||79]は[休み|やすみ|80]ます。","e":"But today, I'm taking the day off."}]],"g":[["日本語","にほんご","the Japanese language",2],["試験","しけん","examination, test",4],["月","がつ","-th month of the year",5],["受ける","うける","take [an examination]",31],["N","のるまる","JLPT level (N5 easiest … N1 hardest)",0],["合格","ごうかく","pass [an examination]",32],["できる","できる","be able to, can",18],["どう","どう","how",2],["わかる","わかる","understand",6],["毎朝","まいあさ","every morning",4],["時間","じかん","time",9],["勉強","べんきょう","study",4],["先月","せんげつ","last month",5],["先生","せんせい","teacher, instructor (not used when referring to one's own job)",1],["古い","ふるい","old (not used to describe a person's age)",8],["本","ほん","book",2],["いただく","いただく","Thank you./I accept. (said before starting to eat or drink)",7],["わたし","わたし","I",1],["作文","さくぶん","essay, composition",31],["直す","なおす","repair, correct",20],["携帯","けいたい","portable ～",36],["アプリ","あぷり","app",0],["言葉","ことば","word, language",20],["覚える","おぼえる","memorise",17],["便利","べんり","convenient",8],["電車","でんしゃ","electric train",5],["中","なか","in, inside",10],["毎日","まいにち","every day",4],["分","ぷん","－ minute",4],["使う","つかう","use",14],["聞く","きく","hear, listen",6],["問題","もんだい","question, problem, trouble",14],["いちばん","いちばん","the most ～ (いちばん うえ : the top)",10],["難しい","むずかしい","difficult",8],["先週","せんしゅう","last week",5],["ニュース","にゅーす","news",21],["速い","はやい","fast, early",12],["半分","はんぶん","half",42],["それ","それ","that (thing near the listener)",2],["ラジオ","らじお","radio",2],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["週間","しゅうかん","－ week(s)",11],["旅行","りょこう","trip, tour (～を します : travel, make a trip)",7],["行く","いく","go",5],["その","その","that ～, that ～ near the listener",2],["間","あいだ","between, among",10],["猫","ねこ","cat",10],["えさ","えさ","feed, bait",41],["やる","やる","do",26],["隣","となり","next, next door",10],["寝る","ねる","sleep, go to bed",4],["読む","よむ","read",6],["日","ひ","day, date",19],["朝","あさ","morning",4],["早い","はやい","early, quickly, fast",9],["起きる","おきる","get up, wake up",4],["大学","だいがく","university",1],["たくさん","たくさん","many, much",9],["いる","いる","exist, be (referring to animate things)",10],["答え","こたえ","answer",14],["いくつ","いくつ","how many",11],["終わる","おわる","finish",4],["全然","ぜんぜん","not at all (used with negatives)",9],["大丈夫","だいじょうぶ","all right",17],["がんばる","がんばる","do one's best",25],["インターネット","いんたーねっと","Internet",18],["調べる","しらべる","check, investigate",20],["書く","かく","write (かきます can also mean to draw or paint, but in this case it is written with hiragana in this book)",6],["すぐ","すぐ","immediately",14],["メール","めーる","e-mail",7],["送る","おくる","send",7],["おめでとう","おめでとう","Congratulations. (used on birthdays, at weddings, New Year's Day, etc.)",22],["返事","へんじ","reply, answer (～を します : reply, answer)",29],["夜","よる","night, evening",4],["ケーキ","けーき","cake",19],["作る","つくる","to make",15],["見る","みる","see, look at, watch",6],["次","つぎ","next",5],["もっと","もっと","more",33],["きょう","きょう","today",4],["休む","やすむ","take a rest, take a holiday",4]],"sp":{"鈴木":["f","すずき"],"マリア":["f","まりあ"]}},
+{"id":"R45a","l":45,"f":[43,45],"t":"[美容院|びよういん|0]で","te":"At the hair salon","a":"Shorter, please — but not too short. A haircut, a forecast that lied, and a quick run to the konbini.","p":[[{"j":"[髪|かみ|1]が[長く|ながく|2]なったので、[美容院|びよういん|0]へ[行こう|いこう|3]と[思い|おもい|4]ました。","e":"My hair had gotten long, so I thought I'd go to a salon."},{"j":"[インターネット||5]で[予約|よやく|6]すると、[少し|すこし|7][安く|やすく|8]なります。","e":"If you book online, it's a little cheaper."},{"j":"[それ||9]で、[駅|えき|10]の[前|まえ|11]の[美容院|びよういん|0]を[インターネット||5]で[予約|よやく|6]しました。","e":"So I booked a salon in front of the station online."}],[{"j":"[土曜日|どようび|12]の[朝|あさ|13]、[天気予報|てんきよほう|14]は「[きょう||15]は[一日中|いちにちじゅう][晴れる|はれる|16]でしょう」と[言っ|いっ|17]ていました。","e":"On Saturday morning, the forecast said, \"It will be sunny all day today.\""},{"j":"[それ||9]で、[傘|かさ|18]を[持た|もた|19]ないで、[うち||20]を[出|で|21]ました。","e":"So I left home without an umbrella."}],[{"j":"[いらっしゃい||22]ませ。[きょう||15]は[どう||23]しますか。","e":"Welcome. What are we doing today?","s":"店の人"},{"j":"[短く|みじかく|24]してください。","e":"Shorter, please.","s":"マリア"},{"j":"[どの||25]ぐらい[短く|みじかく|24]しますか。","e":"How much shorter?","s":"店の人"},{"j":"[この||26][写真|しゃしん|27]と[同じ|おなじ|28]ぐらいにしてください。","e":"Make it about the same as this photo, please.","s":"マリア"},{"j":"でも、[前|まえ|11]は[少し|すこし|7]だけ[切っ|きっ|29]てください。","e":"But only take a little off the front.","s":"マリア"},{"j":"[切り|きり|29][すぎ||30]ないでくださいね。","e":"Please don't cut too much, okay?","s":"マリア"},{"j":"[わかり||31]ました。","e":"Got it.","s":"店の人"}],[{"j":"[店|みせ|32]の[人|ひと]は[話し|はなし|33]ながら、[髪|かみ|1]を[切り|きり|29]ました。","e":"The stylist chatted while she cut my hair."},{"j":"[この||26][長さ|ながさ|34]なら、[朝|あさ|13]、[洗い|あらい|35]やすいし、[乾き|かわき|36]やすいですよ。","e":"At this length, it's easy to wash in the morning, and quick to dry.","s":"店の人"},{"j":"あ、[外|そと|37]が[暗く|くらく|38]なりましたね。[雨|あめ|39]が[降り|ふり|40]そうですね。","e":"Oh, it's gotten dark outside. It looks like it's going to rain.","s":"店の人"},{"j":"え、[天気予報|てんきよほう|14]は[晴れる|はれる|16]と[言っ|いっ|17]ていたのに。","e":"What? Even though the forecast said it'd be sunny.","s":"マリア"}],[{"j":"40[分|ぷん|41][後|ご|42]、[鏡|かがみ|43]を[見る|みる|44]と……[前|まえ|11]が[短|みじか|24][すぎ||30]ました！","e":"Forty minutes later, I looked in the mirror… the front was way too short!"},{"j":"[あのう||45]、[前|まえ|11]が[ちょっと||46]……。","e":"Um, the front is a bit…","s":"マリア"},{"j":"あ、[すみ||47]ません！","e":"Oh, I'm so sorry!","s":"店の人"},{"j":"でも、マリア[さん||48]の[顔|かお|49]の[形|かたち|50]に[よく||51][合っ|あっ|52]ていますよ。","e":"But it really suits the shape of your face.","s":"店の人"},{"j":"[もし||53][何|なに]か[問題|もんだい|54]がある[場合|ばあい]は、1[週間|しゅうかん|55][以内|いない|56]に[電話|でんわ|57]してください。","e":"If there's any problem at all, please call within a week.","s":"店の人"},{"j":"[もう||58][一度|いちど|59]、[無料|むりょう|60]で[直し|なおし|61]ますから。","e":"We'll fix it again for free.","s":"店の人"}],[{"j":"[店|みせ|32]を[出る|でる|21]と、[本当|ほんとう|62]に[雨|あめ|39]が[降っ|ふっ|40]ていました。","e":"When I left the shop, it really was raining."},{"j":"[すみ||47]ません、[ちょっと||46][コンビニ||63]で[傘|かさ|18]を[買っ|かっ|64]てきます。","e":"Excuse me, I'm just going to run and buy an umbrella at the konbini.","s":"マリア"},{"j":"あ、[この||26][傘|かさ|18]を[使っ|つかっ|65]てください。[来週|らいしゅう|66]、[返し|かえし|67]てくれればいいですから。","e":"Oh, use this umbrella. You can just give it back next week.","s":"店の人"},{"j":"[ありがとう||68][ござい||68]ます！","e":"Thank you so much!","s":"マリア"}],[{"j":"[月曜日|げつようび|69]、[会社|かいしゃ|70]で[林|はやし||#][さん||48]に[会い|あい|71]ました。","e":"On Monday, I ran into Ms. Hayashi at work."},{"j":"あ、[髪|かみ|1]、[短く|みじかく|24]したんですね！","e":"Oh, you cut your hair short!","s":"林"},{"j":"[前|まえ|11]が[ちょっと||46][短い|みじかい|24]けど、[とても||72][元気|げんき|73]そうに[見え|みえ|74]ますよ。","e":"The front's a little short, but you look really bright and lively.","s":"林"},{"j":"[ありがとう||75]。[次|つぎ|76]は、「[切り|きり|29][すぎ||30]ないでください」と2[回|かい|77][言い|いい|17]ます。","e":"Thanks. Next time, I'll say \"please don't cut too much\" twice.","s":"マリア"}]],"g":[["美容院","びよういん","hair salon",28],["髪","かみ","hair",16],["長い","ながい","long",16],["行く","いく","go",5],["思う","おもう","think",21],["インターネット","いんたーねっと","Internet",18],["予約","よやく","reserve, book",18],["少し","すこし","a little, a few",9],["安い","やすい","inexpensive",8],["それ","それ","that (thing near the listener)",2],["駅","えき","station",5],["前","まえ","front, before",10],["土曜日","どようび","Saturday",4],["朝","あさ","morning",4],["天気予報","てんきよほう","weather forecast",40],["きょう","きょう","today",4],["晴れる","はれる","clear up",32],["言う","ゆう","entitled ～, named ～, called ～",21],["傘","かさ","umbrella",2],["持つ","もつ","hold",14],["うち","うち","house, home",3],["出る","でる","go out [of a coffee shop]",13],["いらっしゃる","いらっしゃる","How nice of you to come. (lit. Welcome.)",3],["どう","どう","how",2],["短い","みじかい","short",16],["どの","どの","which ～ (used for three or more)",11],["この","この","this ～, this ～ here",2],["写真","しゃしん","photograph",6],["同じ","おなじ","the same",21],["切る","きる","cut, slice",7],["すぎる","すぎる","pass [7 o'clock]",36],["わかる","わかる","understand",6],["店","みせ","store, shop",6],["話す","はなす","speak, talk",14],["長さ","ながさ","length",40],["洗う","あらう","wash",18],["乾く","かわく","[a shirt] dry",44],["外","そと","outside",10],["暗い","くらい","dark",16],["雨","あめ","rain, rainy",12],["降る","ふる","rain, fall [rain/snow]",14],["分","ぷん","－ minute",4],["後","ご","after ～ (duration of time)",27],["鏡","かがみ","mirror",30],["見る","みる","see, look at, watch",6],["あのう","あのう","Er... (used to show hesitation)",2],["ちょっと","ちょっと","a little while, a little bit",6],["すみません","すむ","Excuse me.",3],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["顔","かお","face",16],["形","かたち","shape",27],["よく","よく","well, much",9],["合う","あう","fit, suit",39],["もし","もし","if",25],["問題","もんだい","question, problem, trouble",14],["週間","しゅうかん","－ week(s)",11],["以内","いない","within ～",33],["電話","でんわ","telephone handset, telephone call",3],["もう","もう","already",7],["一度","いちど","once",19],["無料","むりょう","free of charge",28],["直す","なおす","repair, correct",20],["本当","ほんとう","true",18],["コンビニ","こんびに","convenience store",10],["買う","かう","buy",6],["使う","つかう","use",14],["来週","らいしゅう","next week",5],["返す","かえす","give back, return",17],["ありがとうございます","","ありがとうございます",2],["月曜日","げつようび","Monday",4],["会社","かいしゃ","company",3],["会う","あう","meet [a friend]",6],["とても","とても","very",8],["元気","げんき","healthy, energetic, cheerful",8],["見える","みえる","[a mountain] can be seen",27],["ありがとう","ありがとう","Thank you [very much].",2],["次","つぎ","next",5],["回","かい","－ times",11]],"sp":{"店の人":["f","みせのひと"],"マリア":["f","まりあ"],"林":["f","はやし"]}},
+{"id":"R48a","l":48,"f":[46,48],"t":"[京都|きょうと||#]へ","te":"To Kyoto","a":"A day off negotiated politely, a delayed shinkansen, a lunch box, and autumn leaves.","p":[[{"j":"[来週|らいしゅう|0]、アヤ[さん||1]と[京都|きょうと||#]へ[旅行|りょこう|2]に[行き|いき|3]ます。","e":"Next week, Aya and I are taking a trip to Kyoto."},{"j":"でも、[旅行|りょこう|2]は[金曜日|きんようび|4]からです。","e":"But the trip starts on Friday."},{"j":"[わたし||5]は[課長|かちょう|6]に[話し|はなし|7]に[行き|いき|3]ました。","e":"I went to talk to the section chief."}],[{"j":"[課長|かちょう|6]、[すみ||8]ません。[ちょっと||9][お願い|おねがい|9]が[ある||9]んですが。","e":"Excuse me, chief. I have a small favor to ask.","s":"マリア"},{"j":"[はい||10]、[何|なん|11]ですか。","e":"Yes, what is it?","s":"課長"},{"j":"[金曜日|きんようび|4]に[休ま|やすま|12]せていただけませんか。[友達|ともだち|13]と[京都|きょうと||#]へ[行き|いき|3]たいんです。","e":"Could you let me take Friday off? I'd like to go to Kyoto with a friend.","s":"マリア"},{"j":"[京都|きょうと||#]ですか。いいですね。","e":"Kyoto? How nice.","s":"課長"},{"j":"でも、[月曜日|げつようび|14]に[頼ん|たのん|15]だ[仕事|しごと|16]は、[どう||17]なっていますか。","e":"But how's the work I asked you to do on Monday coming along?","s":"課長"},{"j":"[今|いま|18]、[やっ||19]ている[ところ||20]です。[木曜日|もくようび|21]までに[終わる|おわる|22]はずです。","e":"I'm in the middle of it now. It should be done by Thursday.","s":"マリア"},{"j":"[じゃ||23]、[木曜日|もくようび|21]までに[終わら|おわら|22]せてくださいね。","e":"Then please get it finished by Thursday.","s":"課長"},{"j":"[はい||10]！[ありがとう||24][ござい||24]ます。","e":"Yes! Thank you very much.","s":"マリア"}],[{"j":"[金曜日|きんようび|4]の[朝|あさ|25]、[新横浜駅|しんよこはまえき||#]に[着い|つい|26]た[とき||27]、[駅|えき|28]の[放送|ほうそう|29]が[聞こえ|きこえ|30]ました。","e":"Friday morning, when I arrived at Shin-Yokohama Station, I heard an announcement."},{"j":"[静岡|しずおか||#]で[事故|じこ|31]があったそうです。","e":"Apparently there had been an accident in Shizuoka."},{"j":"[新幹線|しんかんせん|32]は30[分|ぷん|33]ぐらい[遅れる|おくれる|34]ようです。","e":"It seems the shinkansen will be about 30 minutes late."},{"j":"[じゃ||23]、[お||35][弁当|べんとう|35]を[買おう|かおう|36]か。","e":"Well then, shall we buy lunch boxes?","s":"アヤ"},{"j":"いいね。","e":"Good idea.","s":"マリア"}],[{"j":"[新幹線|しんかんせん|32]の[中|なか|37]で、[わたしたち||38]は[買っ|かっ|36]たばかりの[お||35][弁当|べんとう|35]を[食べ|たべ|39]ました。","e":"On the shinkansen, we ate the lunch boxes we'd just bought."},{"j":"いい[におい||40]がしました。","e":"It smelled great."},{"j":"[前|まえ|41]の[席|せき|42]の[小さい|ちいさい|43][子ども|こども|44]が、[わたしたち||38]の[お||35][弁当|べんとう|35]を[見|み|45]ていました。","e":"A small child in the seat in front was watching our lunch boxes."},{"j":"[子ども|こども|44]が[立っ|たっ|46]て、[走り|はしり|47]ました。でも、[お母さん|おかあさん|48]は[すぐ||49][子ども|こども|44]を[席|せき|42]に[座ら|すわら|50]せました。","e":"The child stood up and ran. But the mother made the child sit down right away."},{"j":"[すみ||8]ません。[うるさく||51]て。","e":"I'm sorry. It's being noisy.","s":"お母さん"},{"j":"[いいえ||52]、[大丈夫|だいじょうぶ|53]ですよ。","e":"Not at all, it's fine.","s":"アヤ"}],[{"j":"10[時|じ|54]に[京都|きょうと||#]に[着く|つく|26]はずでしたが、10[時|じ|54]40[分|ぷん|33]に[着き|つき|26]ました。","e":"We were supposed to arrive in Kyoto at 10, but we arrived at 10:40."},{"j":"[京都|きょうと||#]は[秋|あき|55]で、[お||56][寺|てら|56]の[紅葉|もみじ|57]が[とても||58][きれい||59]でした。","e":"It was autumn in Kyoto, and the maple leaves at the temples were beautiful."},{"j":"[赤|あか|60]や[黄色|きいろ|61]の[木|き|62]の[下|した|63]で、[写真|しゃしん|64]を[たくさん||65][撮り|とり|66]ました。","e":"We took lots of photos under the red and yellow trees."}],[{"j":"[お||56][寺|てら|56]で[写真|しゃしん|64]を[撮っ|とっ|66]ている[とき||27]、[男|おとこ|67]の[人|ひと|67]が[来|き|68]ました。","e":"While we were taking photos at a temple, a man came up."},{"j":"[すみ||8]ません、[写真|しゃしん|64]を[撮っ|とっ|66]ていただけませんか。","e":"Excuse me, would you mind taking our picture?","s":"男の人"},{"j":"[はい||10]、いいですよ。","e":"Sure.","s":"マリア"},{"j":"[日本語|にほんご|69]が[上手|じょうず|70]ですね。[日本|にほん||#]に[住ん|すん|71]でいるんですか。","e":"Your Japanese is good. Do you live in Japan?","s":"男の人"},{"j":"[はい||10]、[もう||72]3[年|ねん|73]ぐらいになります。","e":"Yes, it's been about three years now.","s":"マリア"},{"j":"そうですか。[わたし||5]は[きのう||74]アメリカから[来|き|68]たばかりなんです。","e":"I see. I only just got here from America yesterday.","s":"男の人"},{"j":"[京都|きょうと||#]の[おいしい||75][店|みせ|76]を[知り|しり|77]ませんか。","e":"Do you know any good places to eat in Kyoto?","s":"男の人"},{"j":"アヤ[さん||1]は、[その||78][人|ひと]に[有名|ゆうめい|79]な[店|みせ|76]を[教え|おしえ|80]てあげました。","e":"Aya told him about a famous restaurant."}],[{"j":"[夜|よる|81]、[ホテル||82]でアヤ[さん||1]が[言い|いい|83]ました。","e":"That night at the hotel, Aya said something."},{"j":"[あした||84]は[朝|あさ|25]6[時|じ|54]に[起き|おき|85]て、[有名|ゆうめい|79]な[お||56][寺|てら|56]へ[行こう|いこう|3]。","e":"Tomorrow let's get up at 6 and go to a famous temple.","s":"アヤ"},{"j":"9[時|じ|54]を[過ぎる|すぎる|86]と、[人|ひと]が[とても||58][多く|おおく|87]なるそうだよ。","e":"Apparently after 9 it gets really crowded.","s":"アヤ"},{"j":"6[時|じ|54]……。","e":"Six…","s":"マリア"},{"j":"[休み|やすみ|88]の[日|ひ|89]なのに、[会社|かいしゃ|90]の[日|ひ|89]より[早く|はやく|91][起き|おき|85]なければなりません。","e":"Even though it's a day off, I have to get up earlier than on a workday."}]],"g":[["来週","らいしゅう","next week",5],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["旅行","りょこう","trip, tour (～を します : travel, make a trip)",7],["行く","いく","go",5],["金曜日","きんようび","Friday",4],["わたし","わたし","I",1],["課長","かちょう","section head",18],["話す","はなす","speak, talk",14],["すみません","すむ","Excuse me.",3],["ちょっとお願いがあるんですが","","I have a [small] favor to ask.",28],["はい","はい","yes",1],["何","なん","what",2],["休む","やすむ","take a rest, take a holiday",4],["友達","ともだち","friend",5],["月曜日","げつようび","Monday",4],["頼む","たのむ","ask, request",37],["仕事","しごと","work, business (～を します : do one's job, work)",8],["どう","どう","how",2],["今","いま","now",4],["やる","やる","do",26],["ところ","ところ","place",8],["木曜日","もくようび","Thursday",4],["終わる","おわる","finish",4],["じゃ","じゃ","well, then, in that case",3],["ありがとうございます","","ありがとうございます",2],["朝","あさ","morning",4],["着く","つく","arrive",25],["とき","とき","－ o'clock",4],["駅","えき","station",5],["放送","ほうそう","[commodity] prices",21],["聞こえる","きこえる","[a sound] can be heard",27],["事故","じこ","accident",39],["新幹線","しんかんせん","the Shinkansen, the bullet train",5],["分","ぷん","－ minute",4],["遅れる","おくれる","be late [for an appointment, etc.]",26],["お弁当","","box lunch",22],["買う","かう","buy",6],["中","なか","in, inside",10],["わたしたち","わたしたち","we",1],["食べる","たべる","eat",6],["におい","におい","smell",47],["前","まえ","front, before",10],["席","せき","seat",33],["小さい","ちいさい","small, little",8],["子ども","こども","child",9],["見る","みる","see, look at, watch",6],["立つ","たつ","stand up",14],["走る","はしる","run, drive [along a road]",27],["お母さん","おかあさん","(someone else's) mother (also used to address one's own mother)",7],["すぐ","すぐ","immediately",14],["座る","すわる","sit down",14],["うるさい","うるさい","noisy",32],["いいえ","いいえ","no",1],["大丈夫","だいじょうぶ","all right",17],["時","じ","－ o'clock",4],["秋","あき","autumn, fall",12],["お寺","","Buddhist temple",16],["もみじ","もみじ","maple, red leaves of autumn",12],["とても","とても","very",8],["きれい","きれい","beautiful, clean",8],["赤","あか","red (noun)",34],["黄色","きいろ","yellow (noun)",34],["木","き","tree, wood",10],["下","した","under, below, beneath",10],["写真","しゃしん","photograph",6],["たくさん","たくさん","many, much",9],["撮る","とる","take [a photograph]",6],["男の人","","man",10],["来る","くる","come",5],["日本語","にほんご","the Japanese language",2],["上手","じょうず","good at",9],["住む","すむ","be going to live",15],["もう","もう","already",7],["年","ねん","-th year",5],["きのう","きのう","yesterday",4],["おいしい","おいしい","delicious, tasty",8],["店","みせ","store, shop",6],["知る","しる","get to know",15],["その","その","that ～, that ～ near the listener",2],["有名","ゆうめい","famous",8],["教える","おしえる","teach",7],["夜","よる","night, evening",4],["ホテル","ほてる","hotel",12],["言う","ゆう","entitled ～, named ～, called ～",21],["あした","あした","tomorrow",4],["起きる","おきる","get up, wake up",4],["過ぎる","すぎる","pass [7 o'clock]",36],["多い","おおい","many [people], much",12],["休み","やすみ","rest, a holiday, a day off",4],["日","ひ","day, date",19],["会社","かいしゃ","company",3],["早い","はやい","early, quickly, fast",9]],"sp":{"課長":["m","かちょう"],"マリア":["f","まりあ"],"アヤ":["f","あや"],"男の人":["m","おとこのひと"],"お母さん":["f","おかあさん"]}},
+{"id":"R50a","l":50,"f":[49,50],"t":"[お客様|おきゃくさま|0]が[来|き|1]た[日|ひ|2]","te":"The day a client came","a":"Reception duty: honorific for them, humble for us — and a phone call she handles all by herself.","p":[[{"j":"[きょう||3]は、[会社|かいしゃ|4]に[大阪|おおさか||#]から[お客様|おきゃくさま|0]が[いらっしゃる||5][日|ひ|2]でした。","e":"Today was the day a client was coming to our office from Osaka."},{"j":"[いつも||6][受付|うけつけ|7]に[いる||8][人|ひと]が[休み|やすみ|9]だったので、[わたし||10]が[受付|うけつけ|7]をしました。","e":"The person who's usually at reception was off, so I covered reception."}],[{"j":"10[時|じ|11][ごろ||12]、[男|おとこ|13]の[人|ひと|13]が[いらっしゃい||5]ました。","e":"Around 10, a gentleman arrived."},{"j":"[おはようございます||14]。[わたくし||15]、ミドリ[電気|でんき|16]の[木村|きむら||#]と[申し|もうし|17]ます。","e":"Good morning. My name is Kimura, from Midori Electric.","s":"木村"},{"j":"[部長|ぶちょう|18]の[田中|たなか||#][様|さま]にお[目|め|19]に[かかり||20]たいのですが。","e":"I'd like to see Mr. Tanaka, the department head.","s":"木村"},{"j":"[木村|きむら||#][様|さま]で[いらっしゃい||21]ますね。お[待ち|まち|22]して[おり||23]ました。","e":"Mr. Kimura. We've been expecting you.","s":"マリア"},{"j":"[ただいま||24][田中|たなか||#]を[呼ん|よん|25]で[まいり||26]ます。","e":"I'll go and get Tanaka right away.","s":"マリア"},{"j":"[こちら||27]で[少々|しょうしょう|28][お||28][待ち|まち|28][ください||28]。[どうぞ||29]、お[かけ||30][ください||31]。","e":"Please wait here a moment. Do have a seat.","s":"マリア"}],[{"j":"[わたし||10]は[部長|ぶちょう|18]の[部屋|へや|32]へ[行き|いき|33]ました。","e":"I went to the department head's office."},{"j":"[部長|ぶちょう|18]、ミドリ[電気|でんき|16]の[木村|きむら||#][様|さま]が[いらっしゃい||5]ました。","e":"Sir, Mr. Kimura from Midori Electric has arrived.","s":"マリア"},{"j":"ああ、[ありがとう||34]。[すぐ||35][行き|いき|33]ます。","e":"Ah, thank you. I'll be right there.","s":"部長"},{"j":"[会議室|かいぎしつ|36]にご[案内|あんない|37]してください。[それ||38]から、[お||39][茶|ちゃ|39]をお[願い|ねがい]します。","e":"Please show him to the meeting room. And tea, please.","s":"部長"}],[{"j":"[木村|きむら||#][様|さま]、[会議室|かいぎしつ|36]にご[案内|あんない|37][いたし||40]ます。[こちら||27]へ[どうぞ||29]。","e":"Mr. Kimura, I'll show you to the meeting room. This way, please.","s":"マリア"},{"j":"[田中|たなか||#]は[すぐ||35][まいり||26]ます。","e":"Tanaka will be with you shortly.","s":"マリア"},{"j":"[わたし||10]は[お||39][茶|ちゃ|39]を[いれ||41]て、[会議室|かいぎしつ|36]へ[持っ|もっ|42]て[行き|いき|33]ました。","e":"I made tea and took it to the meeting room."},{"j":"[どうぞ||29]、[召し上がっ|めしあがっ|43]てください。","e":"Please, help yourself.","s":"マリア"},{"j":"[ありがとう||44][ござい||44]ます。","e":"Thank you.","s":"木村"},{"j":"[日本語|にほんご|45]が[お上手|おじょうず|46]ですね。[日本|にほん||#]は[長い|ながい|47]んですか。","e":"Your Japanese is excellent. Have you been in Japan long?","s":"木村"},{"j":"[いいえ||48]、[まだ||49]3[年|ねん|50]です。[毎日|まいにち|51][勉強|べんきょう|52]して[おり||23]ます。","e":"No, only three years. I study every day.","s":"マリア"}],[{"j":"[午後|ごご|53]、[部長|ぶちょう|18]は[木村|きむら||#][様|さま]と[食事|しょくじ|54]に[行き|いき|33]ました。","e":"In the afternoon, the department head went out to eat with Mr. Kimura."},{"j":"[その||55][とき||56]、[電話|でんわ|57]がありました。","e":"Just then, there was a phone call."},{"j":"[もしもし||58]、[さくら銀行|さくらぎんこう||#]の[山本|やまもと||#]と[申し|もうし|17]ますが、[田中|たなか||#][部長|ぶちょう|18]は[いらっしゃい||5]ますか。","e":"Hello, this is Yamamoto from Sakura Bank. Is Mr. Tanaka available?","s":"電話の人"},{"j":"[申し訳|もうしわけ][ござい||59]ません。[田中|たなか||#]は[ただいま||24][出かけ|でかけ|60]て[おり||23]ます。","e":"I'm terribly sorry. Tanaka is out at the moment.","s":"マリア"},{"j":"3[時|じ|11][ごろ||12][戻る|もどる|61]と[申し|もうし|17]て[おり||23]ました。","e":"He said he'd be back around 3.","s":"マリア"},{"j":"[戻り|もどり|61]ましたら、[こちら||27]からお[電話|でんわ|57][いたし||40]ましょうか。","e":"Shall we call you back when he returns?","s":"マリア"},{"j":"[はい||62]、お[願い|ねがい]します。","e":"Yes, please.","s":"電話の人"},{"j":"では、お[電話番号|でんわばんごう|63]をお[願い|ねがい][いたし||40]ます。","e":"Then may I have your phone number?","s":"マリア"},{"j":"045-123-4567です。","e":"It's 045-123-4567.","s":"電話の人"},{"j":"045-123-4567ですね。[かしこまり||64]ました。[田中|たなか||#]に[申し伝え|もうしつたえ|65]ます。","e":"045-123-4567. Certainly. I'll pass that on to Tanaka.","s":"マリア"}],[{"j":"3[時|じ|11]に、[部長|ぶちょう|18]が[戻り|もどり|61]ました。","e":"At 3, the department head came back."},{"j":"[わたし||10]は[電話|でんわ|57]のことを[話し|はなし|66]ました。","e":"I told him about the phone call."},{"j":"マリア[さん||67]、[きょう||3]は[ありがとう||34]。","e":"Maria, thank you for today.","s":"部長"},{"j":"[木村|きむら||#][さん||67]が、[受付|うけつけ|7]の[方|かた||!]の[言葉|ことば|68]が[とても||69][ていねい||70]でしたと[言っ|いっ|71]ていましたよ。","e":"Mr. Kimura said the person at reception spoke very politely.","s":"部長"},{"j":"[敬語|けいご|72|*]は[まだ||49][難しい|むずかしい|73]ですが、[きょう||3]は[少し|すこし|74][でき||75]たと[思い|おもい|76]ます。","e":"Keigo is still hard, but I think I managed a little today."}]],"g":[["お客様","おきゃくさま","visitor, guest, customer, client (respectful equivalent of おきゃくさん)",36],["来る","くる","come",5],["日","ひ","day, date",19],["きょう","きょう","today",4],["会社","かいしゃ","company",3],["いらっしゃる","いらっしゃる","How nice of you to come. (lit. Welcome.)",3],["いつも","いつも","always, usually",6],["受付","うけつけ","reception desk",3],["いる","いる","exist, be (referring to animate things)",10],["休み","やすみ","rest, a holiday, a day off",4],["わたし","わたし","I",1],["時","じ","－ o'clock",4],["ごろ","ごろ","about ～ (time)",13],["男の人","","man",10],["おはようございます","","おはようございます",1],["わたくし","わたくし","I (humble equivalent of わたし)",50],["電気","でんき","electricity, light",1],["申す","もうす","say (one's name) is ～ (humble equivalent of いいます)",50],["部長","ぶちょう","department head",18],["目","め","eye",16],["かかる","かかる","take, cost (referring to time or money)",11],["でいらっしゃいます","","be (respectful equivalent of です)",49],["待つ","まつ","wait",14],["おる","おる","be (humble equivalent of います)",50],["ただいま","ただいま","I'm home.",12],["呼ぶ","よぶ","call",14],["まいる","まいる","go, come (humble equivalent of いきます and きます)",50],["こちら","こちら","this way, this place (polite equivalent of ここ)",1],["少々お待ちください","","Please wait [a moment].",13],["どうぞ","どうぞ","Here you are. (used when offering someone something)",2],["かける","かける","make [a telephone call]",7],["くださる","くださる","Give me [～], please.",3],["部屋","へや","room",3],["行く","いく","go",5],["ありがとう","ありがとう","Thank you [very much].",2],["すぐ","すぐ","immediately",14],["会議室","かいぎしつ","conference room, meeting room",3],["案内","あんない","guide book",24],["それ","それ","that (thing near the listener)",2],["お茶","","tea, green tea",6],["いたす","いたす","do (humble equivalent of します)",50],["いれる","いれる","put in, insert",16],["持つ","もつ","hold",14],["召し上がる","めしあがる","eat, drink (respectful equivalent of たべます and のみます)",49],["ありがとうございます","","ありがとうございます",2],["日本語","にほんご","the Japanese language",2],["お上手","おじょうず","お + good at",9],["長い","ながい","long",16],["いいえ","いいえ","no",1],["まだ","まだ","not yet",7],["年","ねん","-th year",5],["毎日","まいにち","every day",4],["勉強","べんきょう","study",4],["午後","ごご","p.m., afternoon",4],["食事","しょくじ","have a meal, dine",13],["その","その","that ～, that ～ near the listener",2],["とき","とき","－ o'clock",4],["電話","でんわ","telephone handset, telephone call",3],["もしもし","もしもし","hello (used on the phone)",9],["ございます","ござる","be (polite equivalent of あります)",50],["出かける","でかける","go out",17],["戻る","もどる","return",32],["はい","はい","yes",1],["電話番号","でんわばんごう","telephone handset, telephone call + number",4],["かしこまる","かしこまる","Certainly (sir, madam)",4],["申し伝える","もうしつたえる","say (one's name) is ～ (humble equivalent of いいます) + convey",50],["話す","はなす","speak, talk",14],["さん","さん","Mr., Ms. (suffix added to a name for expressing politeness)",1],["言葉","ことば","word, language",20],["とても","とても","very",8],["ていねい","ていねい","polite, courteous, careful",44],["言う","ゆう","entitled ～, named ～, called ～",21],["敬語","けいご","keigo, honorific language",0],["難しい","むずかしい","difficult",8],["少し","すこし","a little, a few",9],["できる","できる","be able to, can",18],["思う","おもう","think",21]],"sp":{"木村":["m","きむら"],"マリア":["f","まりあ"],"部長":["m","ぶちょう"],"電話の人":["f","でんわのひと"]}}
+];
+/* ========================= END DATA ========================= */
+
+/* =====================================================================
+   読解の糸 — leveled reading.
+   Storage key is "dokkai_v1". It never reads or writes bunkei_v2 or
+   shiken_v1, so nothing here can touch anyone's SRS or ★ lists elsewhere.
+   ★ / 🔖 / 続き are keyed to story id + the sentence TEXT (index is only a
+   hint), so stories can be edited later without orphaning anything.
+   ===================================================================== */
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const RB = (b,r) => `<ruby>${b}<rt>${r}</rt></ruby>`;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ================= storage ================= */
+let canStore = true;
+function load(){ try{ const r = localStorage.getItem("dokkai_v1"); return r ? JSON.parse(r) : {}; }
+                 catch(e){ canStore = false; return {}; } }
+function save(){ try{ localStorage.setItem("dokkai_v1", JSON.stringify(S)); }catch(e){ canStore = false; } }
+const S = Object.assign({ cfg:{}, star:{}, pos:{}, bm:{}, done:{} }, load());
+S.cfg = Object.assign({ jvURI:"", evURI:"", lv:25, furi:"tap", en:false, rate:0.9, mode:"cont", fs:21, kana:false }, S.cfg||{});
+["star","pos","bm","done"].forEach(k => { S[k] = S[k] || {}; });
+
+/* ================= data prep ================= */
+const BY = {};
+STORIES.forEach(s => { BY[s.id] = s; });
+const KATA = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+const isKanji = c => /[一-鿿々〆ヶ]/.test(c);
+
+function parseJ(j){
+  const out = [], re = /\[([^|\]]+)(?:\|([^|\]]*))?(?:\|([^|\]]*))?(?:\|([^|\]]*))?\]/g;
+  let i = 0, m;
+  while((m = re.exec(j))){
+    if(m.index > i) out.push({ t:j.slice(i, m.index), w:false });
+    out.push({ t:m[1], r:m[2]||"", g:(m[3]!==undefined && m[3]!=="") ? +m[3] : -1, f:m[4]||"", w:true });
+    i = re.lastIndex;
+  }
+  if(i < j.length) out.push({ t:j.slice(i), w:false });
+  return out;
+}
+/* put the reading only over the kanji: 召し上がっ/めしあがっ → 召[め]し上[あ]がっ */
+function rubyHTML(t, r){
+  if(!r || !/[一-鿿々〆ヶ]/.test(t)) return esc(t);
+  const runs = t.match(/[一-鿿々〆ヶ]+|[^一-鿿々〆ヶ]+/g);
+  const pat = "^" + runs.map(x => isKanji(x[0]) ? "(.+?)" : KATA(x).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("") + "$";
+  const m = new RegExp(pat).exec(KATA(r));
+  if(!m) return RB(esc(t), esc(r));
+  let k = 1;
+  return runs.map(x => isKanji(x[0]) ? RB(esc(x), esc(m[k++])) : esc(x)).join("");
+}
+function plainText(segs){ return segs.map(s => s.t).join(""); }
+function kanaText(segs){ return segs.map(s => s.w && s.r ? s.r : KATA(s.t)).join(""); }
+/* what the synthesiser gets: kanji for natural prosody, except tokens flagged ! */
+function ttsText(segs){
+  if(S.cfg.kana) return kanaText(segs);
+  return segs.map(s => (s.w && s.f.includes("!") && s.r) ? s.r : s.t).join("");
+}
+
+/* ================= TTS ================= */
+/* Reader additions to this engine: speak() takes opt {pitch, voice, estLen}.
+   estLen = KANA length, so the length watchdog doesn't cut off a kanji-dense
+   sentence. Sentences are spoken with kanji (natural prosody) except tokens
+   flagged ! in the data, or everything in かなで mode.
+   Lifted wholesale from 文型の糸 — every line here is load-bearing on
+   iOS/Chrome. Isolated Japanese is always fed as KANA, never kanji, so the
+   engine can't misread 行って as おこなって. */
+let JV=null,EV=null,currentU=null,unlocked=false,speakToken=0,noJa=false,voicesSettled=false;
+const SPOKEN=[];   /* rolling log of what was actually voiced — debug + tests */
+/* ---- EDITABLE: TTS pronunciation overrides -------------------------------
+   Apple's Kyoko applies sequential voicing (rendaku) across seams it thinks
+   it sees inside a kana string, so an isolated word can come out as ...づき
+   where ...つき was meant. Google's Japanese voice does not do this.
+   Left side = the kana we store. Right side = what to FEED the synthesiser.
+   A space or 、 at the seam is usually enough to stop the voicing; katakana
+   sometimes helps too. Add entries freely — nothing else depends on this. */
+const SAY_FIX = {
+  "まいつき":   "まい つき",
+  "ひとつき":   "ひと つき",
+  "みつき":     "み つき",
+  "だいすき":   "だい すき",
+  "ものすごい": "もの すごい"
+};
+function allVoices(){ try{ return speechSynthesis.getVoices()||[]; }catch(e){ return []; } }
+function pickVoices(){
+  const vs = allVoices(), isJa = v => v.lang.replace("_","-").startsWith("ja");
+  JV = (S.cfg.jvURI && vs.find(v=>v.voiceURI===S.cfg.jvURI))
+     || vs.find(v=>/Google/i.test(v.name)&&isJa(v))
+     || vs.find(v=>/Kyoko/i.test(v.name)&&isJa(v))
+     || vs.find(isJa) || null;
+  EV = (S.cfg.evURI && vs.find(v=>v.voiceURI===S.cfg.evURI))
+     || vs.find(v=>/Google/i.test(v.name)&&v.lang.startsWith("en"))
+     || vs.find(v=>/Samantha|Jenny|Aria|Zira/i.test(v.name)&&v.lang.startsWith("en"))
+     || vs.find(v=>v.lang.startsWith("en")) || null;
+  noJa = vs.length>0 && !JV;
+}
+async function ensureVoices(){
+  for(let i=0;i<20;i++){ if(allVoices().length) break; await new Promise(r=>setTimeout(r,120)); }
+  pickVoices(); voicesSettled = true;
+}
+if (typeof speechSynthesis !== "undefined"){
+  speechSynthesis.onvoiceschanged = () => pickVoices();
+  pickVoices(); ensureVoices();
+}
+function unlock(){ if(unlocked) return; unlocked = true;
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("あ"); u.volume=0; u.rate=1;
+       speechSynthesis.speak(u); }catch(e){} }
+document.addEventListener("touchstart", unlock, {once:true});
+document.addEventListener("click", unlock, {once:true});
+function speak(text, jp=true, rate=0.92, _retry=false, opt={}){
+  if(!_retry){ SPOKEN.push(text); if(SPOKEN.length>40) SPOKEN.shift(); }
+  if(jp && SAY_FIX[text]) text = SAY_FIX[text];
+  const myToken = ++speakToken;
+  return new Promise(async res=>{
+    try{
+      if(!voicesSettled) await ensureVoices();
+      const busy = speechSynthesis.speaking || speechSynthesis.pending;
+      if(busy) speechSynthesis.cancel();
+      setTimeout(()=>{
+        if(myToken !== speakToken) return res();
+        pickVoices();
+        const u = new SpeechSynthesisUtterance(text);
+        currentU = u;
+        u.lang = jp ? "ja-JP" : "en-US";
+        let v = (jp && opt.voice) || (jp ? JV : EV), r = jp ? rate : 1.0;
+        if(_retry){ r = 1.0;
+          if(jp){ const alt = allVoices().find(x=>x.lang.replace("_","-").startsWith("ja") && v && x.localService !== v.localService);
+                  if(alt) v = alt; } }
+        if(v) u.voice = v;
+        u.rate = Math.max(0.7, r); u.pitch = opt.pitch || 1;
+        let done=false, started=false;
+        const finish = ()=>{ if(done) return; done=true; clearInterval(kick); res(); };
+        u.onstart = ()=>{ started = true; };
+        u.onend = finish; u.onerror = finish;
+        const est = 600 + (opt.estLen || text.length)*(jp?185:75)/u.rate;
+        setTimeout(finish, est+1500);
+        setTimeout(()=>{ if(!started && !done && !_retry){ done=true; clearInterval(kick);
+            try{ speechSynthesis.cancel(); }catch(e){}
+            setTimeout(()=>speak(text,jp,1.0,true,opt).then(res),160); } }, 1400);
+        const kick = setInterval(()=>{ try{ speechSynthesis.resume(); }catch(e){} }, 2500);
+        speechSynthesis.speak(u);
+        setTimeout(()=>{ try{ speechSynthesis.resume(); }catch(e){} }, 120);
+      }, busy?230:40);
+    }catch(e){ res(); }
+  });
+}
+function jaWarnHTML(){ return `<div class="note" style="border-color:var(--akane);color:var(--thread)">
+  ⚠ <b>No Japanese voice found in this browser</b> — Japanese audio will be silent until one is installed.<br>
+  ・<b>iPhone/iPad:</b> Settings → Accessibility → Spoken Content → Voices → Japanese → download <b>Kyoko</b><br>
+  ・<b>Windows:</b> Settings → Time &amp; Language → Language → add 日本語 (with Speech), or use Edge/Chrome<br>
+  ・<b>Android:</b> Settings → Google Text-to-speech → install Japanese<br>
+  ・<b>Mac:</b> System Settings → Accessibility → Spoken Content → System voice → Manage voices → Japanese</div>`; }
+
+/* ================= helpers ================= */
+let toastT = 0;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 1600); }
+function paintPill(){
+  const n = Object.keys(S.star).length + Object.keys(S.bm).length;
+  $("#hpill").textContent = n ? `★🔖 ${n}` : `${STORIES.length}話`;
+}
+function storyLen(s){ return s.p.reduce((a,p) => a + p.length, 0); }
+function storyChars(s){ return s.p.reduce((a,p) => a + p.reduce((b,r) => b + plainText(parseJ(r.j)).length, 0), 0); }
+function lineAt(s, i){ let k = 0; for(const p of s.p) for(const r of p){ if(k === i) return r; k++; } return null; }
+/* find a saved sentence again even if the story was edited: text first, index as hint */
+function locate(s, i, txt){
+  const L = storyLen(s);
+  if(txt){
+    const at = lineAt(s, i);
+    if(at && plainText(parseJ(at.j)).startsWith(txt)) return i;
+    let k = 0; for(const p of s.p) for(const r of p){ if(plainText(parseJ(r.j)).startsWith(txt)) return k; k++; }
+  }
+  return Math.max(0, Math.min(i||0, L-1));
+}
+
+/* ================= tabs ================= */
+let TAB = "lib";
+function setTab(t){
+  TAB = t;
+  ["lib","keep","set"].forEach(x => $("#tab-"+x).classList.toggle("on", x===t));
+  if(t==="lib")  renderLib();
+  if(t==="keep") renderKeep();
+  if(t==="set")  renderSettings();
+  window.scrollTo(0,0);
+}
+["lib","keep","set"].forEach(x => $("#tab-"+x).onclick = () => setTab(x));
+
+/* =====================================================================
+   本棚 — library
+   ===================================================================== */
+function renderLib(){
+  const lv = S.cfg.lv, lo = Math.max(1, lv-3);
+  const fit = [], easy = [], later = [];
+  STORIES.forEach(s => {
+    if(s.l > lv) later.push(s);
+    else if(s.f[1] >= lo) fit.push(s);
+    else easy.push(s);
+  });
+  easy.sort((a,b) => b.l - a.l);
+  const card = (s, cls) => {
+    const n = storyLen(s), mins = Math.max(1, Math.round(storyChars(s)/220));
+    const pos = S.pos[s.id], done = S.done[s.id];
+    const bms = Object.values(S.bm).filter(b => b.id === s.id).length;
+    return `<button class="scard ${cls}" data-id="${s.id}">
+      <div class="st">${titleHTML(s, true)}</div>
+      <div class="se">${esc(s.te)}</div>
+      ${s.a ? `<div class="sa">${esc(s.a)}</div>` : ""}
+      <div class="sm"><span class="tag lv">L${s.f[0]===s.f[1]?s.f[0]:s.f[0]+"–"+s.f[1]}</span>
+        <span class="tag">${n}文 ・ 約${mins}分</span>
+        ${s.sp ? `<span class="tag">会話</span>` : ""}
+        ${done ? `<span class="tag dn">✓ 読了</span>` : (pos && pos.i > 0 ? `<span class="tag bm">続き ${pos.i+1}/${n}</span>` : "")}
+        ${bms ? `<span class="tag bm">🔖${bms}</span>` : ""}
+        ${cls==="lock" ? `<span class="tag">L${s.l}まで必要</span>` : ""}</div></button>`;
+  };
+  $("#main").innerHTML = (noJa ? jaWarnHTML() : "") + `
+  <div class="lvbox">
+    <div class="lvtop">
+      <div><div class="hint" style="font-size:11.5px">みんなの${RB("日本語","にほんご")} — どこまで${RB("習","なら")}った？</div>
+        <div class="lvnum">${lv}<small>${RB("課","か")}</small></div></div>
+      <div class="lvband">ちょうどいい：L${lo}–${lv}<br>${lv<=25?RB("初級","しょきゅう")+"I":RB("初級","しょきゅう")+"II"}</div>
+    </div>
+    <input type="range" id="lv" min="5" max="50" step="1" value="${lv}">
+    <div class="ticks"><span>5</span><span>15</span><span>25</span><span>35</span><span>50</span></div>
+    <div class="stepr"><button data-d="-1">−1</button><button data-d="1">＋1</button></div>
+  </div>
+  <p class="hint" style="margin-top:12px">Stories never use vocabulary from after your lesson. "ちょうどいい" ones lean hard on the last few lessons. Tap a word once for its reading, again for the dictionary. Gold dotted words are the rare few from beyond your level — they always show their furigana.</p>
+  ${fit.length ? `<div class="sec">ちょうどいい ・ JUST RIGHT</div>` + fit.map(s => card(s,"fit")).join("") :
+    `<div class="note">No story is pitched exactly at L${lo}–${lv} yet — the easier ones below are all fair game.</div>`}
+  ${easy.length ? `<div class="sec">${RB("復習","ふくしゅう")} ・ EASIER</div>` + easy.map(s => card(s,"")).join("") : ""}
+  ${later.length ? `<div class="sec">まだ ・ LATER</div>` + later.map(s => card(s,"lock")).join("") : ""}`;
+  const r = $("#lv");
+  r.oninput = () => { $(".lvnum").firstChild.nodeValue = r.value; };
+  r.onchange = () => { S.cfg.lv = +r.value; save(); renderLib(); };
+  document.querySelectorAll(".stepr button").forEach(b => b.onclick = () => {
+    S.cfg.lv = Math.max(5, Math.min(50, S.cfg.lv + (+b.dataset.d))); save(); renderLib(); });
+  document.querySelectorAll(".scard").forEach(b => b.onclick = () => openStory(b.dataset.id));
+}
+function titleHTML(s, chrome){
+  return parseJ(s.t).map(x => x.w && x.r ? (chrome || S.cfg.furi==="all" ? rubyHTML(x.t, x.r) : esc(x.t)) : esc(x.t)).join("");
+}
+
+/* =====================================================================
+   reader
+   ===================================================================== */
+let CUR = null;        /* the open story */
+let SENT = [];         /* flattened lines: {r, segs, s(speaker), p(para idx)} */
+let cursor = 0;        /* sentence the ▶ button starts from */
+let playing = false, playTok = 0;
+let selMode = null;    /* {i, k} while choosing a phrase */
+let lastTap = null;    /* {i, k} — second tap on the same word opens the sheet */
+
+function openStory(id, at){
+  const s = BY[id]; if(!s) return;
+  CUR = s; SENT = []; selMode = null; lastTap = null;
+  s.p.forEach((p, pi) => p.forEach(r => SENT.push({ r, segs:parseJ(r.j), s:r.s||null, p:pi })));
+  const saved = S.pos[id];
+  cursor = (at != null) ? at : 0;
+  renderReader();
+  $("#rd").classList.add("on");
+  $("#r-scroll").scrollTop = 0;   /* must follow display:flex — a hidden box ignores scrollTop */
+  document.body.style.overflow = "hidden";
+  if(at != null){ setCursor(at, true); }
+  else if(saved && saved.i > 0 && !S.done[id]){
+    const i = locate(s, saved.i, saved.t);
+    $("#r-resume").innerHTML = `<span>🔖 前回は ${i+1}/${SENT.length} 文目まで</span><button>続きから</button>`;
+    $("#r-resume").style.display = "flex";
+    $("#r-resume button").onclick = () => { $("#r-resume").style.display = "none"; setCursor(i, true); };
+  }
+  paintCtl();
+}
+function closeReader(){
+  stopPlay();
+  if(CUR){
+    const i = topVisible();
+    if(i > 0 || S.pos[CUR.id]) S.pos[CUR.id] = { i, t:plainText(SENT[i].segs).slice(0,14), at:Date.now() };
+    save();
+  }
+  closeSheet(); $("#rd").classList.remove("on"); document.body.style.overflow = "";
+  CUR = null;
+  if(TAB==="lib") renderLib(); else if(TAB==="keep") renderKeep();
+  paintPill();
+}
+function topVisible(){
+  const top = $("#r-scroll").getBoundingClientRect().top + 30;
+  const els = document.querySelectorAll("#r-body .sen");
+  for(let k = 0; k < els.length; k++){ if(els[k].getBoundingClientRect().bottom > top) return k; }
+  return 0;
+}
+function segHTML(seg, i, k){
+  if(!seg.w) return `<span class="p" data-k="${k}">${esc(seg.t)}</span>`;
+  const g = (seg.g >= 0 && CUR.g[seg.g]) ? CUR.g[seg.g] : null;
+  const cls = ["w"];
+  if(seg.f.includes("*")) cls.push("ex");
+  if(seg.f.includes("#")) cls.push("nm");
+  if(g && S.star[wordKey(g, seg)]) cls.push("st");
+  return `<span class="${cls.join(" ")}" data-k="${k}">${rubyHTML(seg.t, seg.r)}</span>`;
+}
+function senHTML(i){
+  const x = SENT[i];
+  const bm = S.bm[bmKey(CUR.id, i)] ? " bmk" : "";
+  return `<span class="sen${bm}" data-i="${i}"><span class="jp">${x.segs.map((g,k) => segHTML(g,i,k)).join("")}</span><span class="en">${esc(x.r.e||"")}</span></span>`;
+}
+function renderReader(){
+  const s = CUR;
+  $("#r-title").innerHTML = titleHTML(s, true);
+  const rd = $("#r-body");
+  rd.className = "rwrap" + (S.cfg.furi==="all" ? " furi-all" : "") + (S.cfg.en ? " en-on" : "");
+  rd.style.setProperty("--fs", S.cfg.fs + "px");
+  let html = `<div class="rhead"><div class="t">${titleHTML(s, false)}</div><div class="e">${esc(s.te)}</div>
+    ${s.a ? `<div class="a">${esc(s.a)}</div>` : ""}
+    <div class="m"><span class="tag lv">L${s.f[0]}–${s.f[1]} ・ max L${s.l}</span><span class="tag">${SENT.length}文</span></div></div>
+    <div class="resume" id="r-resume" style="display:none"></div><div class="body">`;
+  let pi = -1, open = false, i = 0;
+  s.p.forEach((p, P) => {
+    html += `<div class="para">`;
+    let inline = false;
+    p.forEach(r => {
+      if(r.s){
+        if(inline){ html += `</div>`; inline = false; }
+        const sp = (s.sp && s.sp[r.s]) || ["", ""];
+        html += `<div class="ln dlg"><span class="spk ${sp[0]}">${sp[1] && /[一-鿿]/.test(r.s) ? RB(esc(r.s), esc(sp[1])) : esc(r.s)}</span><div>${senHTML(i)}</div></div>`;
+      } else {
+        if(!inline){ html += `<div class="ln">`; inline = true; }
+        html += senHTML(i);
+      }
+      i++;
+    });
+    if(inline) html += `</div>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
+  /* the few words from beyond the story's level, listed so nothing is a surprise */
+  const extra = s.g.map((g,k) => ({g,k})).filter(o => o.g[3] === 0 || o.g[3] > s.l);
+  html += `<div class="endbox">
+    <button class="done ${S.done[s.id]?"was":""}" id="r-done">${S.done[s.id] ? "✓ 読了（もう一度読む）" : "読み終わった ✓"}</button>
+    ${extra.length ? `<div class="sec">この${RB("話","はなし")}の${RB("新","あたら")}しい${RB("言葉","ことば")} ・ BEYOND L${s.l}</div>
+      <div class="glist">${extra.map(o => `<div class="gi"><span class="gw">${esc(o.g[0])}</span><span class="gr">${esc(o.g[1]||"")}</span><span class="gm">${esc(o.g[2])}</span></div>`).join("")}</div>` : ""}
+  </div>`;
+  rd.innerHTML = html;
+  $("#r-done").onclick = () => {
+    if(S.done[s.id]){ delete S.done[s.id]; delete S.pos[s.id]; save(); setCursor(0, true); $("#r-scroll").scrollTop = 0; }
+    else { S.done[s.id] = Date.now(); delete S.pos[s.id]; save(); toast("おつかれさま！ ✓"); }
+    $("#r-done").className = "done" + (S.done[s.id] ? " was" : "");
+    $("#r-done").textContent = S.done[s.id] ? "✓ 読了（もう一度読む）" : "読み終わった ✓";
+  };
+  $("#r-furi").textContent = S.cfg.furi==="all" ? "あ 全部" : "あ タップ";
+  $("#r-furi").classList.toggle("on", S.cfg.furi==="all");
+  $("#r-en").classList.toggle("on", S.cfg.en);
+  $("#r-scroll").scrollTop = 0;
+  markCursor();
+}
+function senEl(i){ return document.querySelector(`#r-body .sen[data-i="${i}"]`); }
+function markCursor(){
+  document.querySelectorAll("#r-body .sen.cur").forEach(e => e.classList.remove("cur"));
+  if(!playing && cursor > 0){ const e = senEl(cursor); if(e) e.classList.add("cur"); }
+}
+function setCursor(i, scroll){
+  cursor = Math.max(0, Math.min(i, SENT.length-1));
+  markCursor();
+  if(scroll){ const e = senEl(cursor); if(e) e.scrollIntoView({ block:"center", behavior:"smooth" }); }
+  paintCtl();
+}
+function paintCtl(){
+  $("#c-play").textContent = playing ? "⏸" : "▶";
+  $("#c-rate").textContent = S.cfg.rate.toFixed(S.cfg.rate===1?1:2).replace(/0$/,"") + "×";
+  $("#c-mode").textContent = S.cfg.mode==="one" ? "一文ずつ" : "連続";
+  $("#c-prev").disabled = cursor <= 0;
+  $("#c-next").disabled = cursor >= SENT.length-1;
+}
+
+/* ---- playback: one utterance per sentence, so ▶ can start anywhere ---- */
+function voiceFor(sp){
+  /* each speaker gets their own sound: men use a male Japanese voice if the
+     device has one, and every speaker of the same gender gets a different
+     pitch, so two women talking don't sound like one person */
+  if(!CUR || !CUR.sp || !sp || !CUR.sp[sp]) return { pitch:1 };
+  const g = CUR.sp[sp][0];
+  const same = Object.keys(CUR.sp).filter(n => CUR.sp[n][0] === g);
+  const nth = Math.max(0, same.indexOf(sp));
+  const ja = allVoices().filter(v => v.lang.replace("_","-").startsWith("ja"));
+  const male = ja.find(v => /Otoya|Hattori|Ichiro|Keita|Daichi|Naoki/i.test(v.name));
+  if(g === "m" && male && (!JV || male.voiceURI !== JV.voiceURI)) return { voice:male, pitch:[1,0.9,1.1][nth % 3] };
+  return { pitch: g === "m" ? [0.82,0.92,0.75][nth % 3] : [1.08,1.22,0.97][nth % 3] };
+}
+async function playFrom(i){
+  stopPlay(true);
+  playing = true; const tok = ++playTok;
+  markCursor(); paintCtl();
+  for(let k = i; k < SENT.length; k++){
+    if(tok !== playTok) return;
+    cursor = k;
+    document.querySelectorAll("#r-body .sen.now").forEach(e => e.classList.remove("now"));
+    const el = senEl(k);
+    if(el){ el.classList.add("now");
+      const r = el.getBoundingClientRect(), box = $("#r-scroll").getBoundingClientRect();
+      if(r.top < box.top + 40 || r.bottom > box.bottom - 40) el.scrollIntoView({ block:"center", behavior:"smooth" }); }
+    paintCtl();
+    const x = SENT[k], v = voiceFor(x.s);
+    await speak(ttsText(x.segs), true, S.cfg.rate, false, { pitch:v.pitch, voice:v.voice, estLen:kanaText(x.segs).length });
+    if(tok !== playTok) return;
+    S.pos[CUR.id] = { i:k, t:plainText(x.segs).slice(0,14), at:Date.now() }; save();
+    if(S.cfg.mode === "one"){
+      playing = false;
+      if(el) el.classList.remove("now");
+      setCursor(Math.min(k+1, SENT.length-1), false);
+      return;
+    }
+    await sleep(x.s ? 520 : 380);
+  }
+  if(tok !== playTok) return;
+  playing = false;
+  document.querySelectorAll("#r-body .sen.now").forEach(e => e.classList.remove("now"));
+  setCursor(0, false); paintCtl();
+  toast("おわり ✓");
+}
+function stopPlay(quiet){
+  playTok++; playing = false;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  document.querySelectorAll("#r-body .sen.now").forEach(e => e.classList.remove("now"));
+  if(!quiet && CUR){ markCursor(); paintCtl(); }
+}
+$("#c-play").onclick = () => { unlock(); if(playing) stopPlay(); else playFrom(cursor); };
+$("#c-prev").onclick = () => { const was = playing; stopPlay(true); setCursor(cursor-1, true); if(was) playFrom(cursor); };
+$("#c-next").onclick = () => { const was = playing; stopPlay(true); setCursor(cursor+1, true); if(was) playFrom(cursor); };
+$("#c-rate").onclick = () => { const R = [0.8,0.9,1.0]; S.cfg.rate = R[(R.indexOf(S.cfg.rate)+1) % R.length] || 0.9; save(); paintCtl(); };
+$("#c-mode").onclick = () => { S.cfg.mode = S.cfg.mode==="one" ? "cont" : "one"; save(); paintCtl();
+  toast(S.cfg.mode==="one" ? "一文ずつ — one sentence per ▶" : "連続 — reads straight through"); };
+$("#r-close").onclick = closeReader;
+$("#r-furi").onclick = () => { S.cfg.furi = S.cfg.furi==="all" ? "tap" : "all"; save();
+  const rd = $("#r-body"); rd.classList.toggle("furi-all", S.cfg.furi==="all");
+  $("#r-furi").textContent = S.cfg.furi==="all" ? "あ 全部" : "あ タップ"; $("#r-furi").classList.toggle("on", S.cfg.furi==="all"); };
+$("#r-en").onclick = () => { S.cfg.en = !S.cfg.en; save(); $("#r-body").classList.toggle("en-on", S.cfg.en); $("#r-en").classList.toggle("on", S.cfg.en); };
+$("#r-size").onclick = () => { const F = [19,21,24,27]; S.cfg.fs = F[(F.indexOf(S.cfg.fs)+1) % F.length] || 21; save();
+  $("#r-body").style.setProperty("--fs", S.cfg.fs + "px"); };
+
+/* ---- taps: once = reading, twice = tools ---- */
+$("#r-body").addEventListener("click", e => {
+  const t = e.target.closest(".w,.p"); if(!t) return;
+  const se = t.closest(".sen"); if(!se) return;
+  const i = +se.dataset.i, k = +t.dataset.k;
+  if(selMode){ finishPhrase(i, k); return; }
+  const isW = t.classList.contains("w");
+  const hasRuby = isW && t.querySelector("rt");
+  const shown = S.cfg.furi==="all" || t.classList.contains("show") || t.classList.contains("ex") || t.classList.contains("nm");
+  if(hasRuby && !shown){ t.classList.add("show"); lastTap = { i, k }; return; }
+  openSheet(i, k);
+});
+function bmKey(id, i){ return id + ":" + i; }
+function wordKey(g, seg){ return "w:" + g[0] + "|" + (g[1] || seg.r || KATA(seg.t)); }
+
+/* ================= sheet ================= */
+function closeSheet(){ $("#sheet").classList.remove("on"); $("#scrim").classList.remove("on");
+  document.querySelectorAll("#r-body .tap,#r-body .sel").forEach(e => e.classList.remove("tap","sel")); }
+$("#scrim").onclick = closeSheet;
+function openSheet(i, k, phrase){
+  closeSheet();
+  const x = SENT[i], seg = x.segs[k];
+  const el = senEl(i);
+  if(phrase){ for(let q = phrase[0]; q <= phrase[1]; q++){ const s = el.querySelector(`[data-k="${q}"]`); if(s) s.classList.add("sel"); } }
+  else { const s = el.querySelector(`[data-k="${k}"]`); if(s) s.classList.add("tap"); }
+  const g = (!phrase && seg.w && seg.g >= 0) ? CUR.g[seg.g] : null;
+  const sentTxt = plainText(x.segs);
+  let h = `<div class="sh-grip"></div>`;
+  if(phrase){
+    const segs = x.segs.slice(phrase[0], phrase[1]+1);
+    h += `<div class="sh-word"><div><div class="sh-w">${segs.map(s => s.w ? rubyHTML(s.t, s.r) : esc(s.t)).join("")}</div>
+      <div class="sh-d"><span class="k">フレーズ ・ ${esc(kanaText(segs))}</span></div></div><button class="sh-x" id="sh-x">✕</button></div>
+      <div class="sh-btns"><button class="pri" id="sh-psave">★ フレーズを保存</button><button id="sh-psay">🔊</button></div>`;
+  } else if(seg.w){
+    let d;
+    if(seg.f.includes("#")) d = `<span class="k">名前 ・ name</span>`;
+    else if(g){
+      const lv = g[3] ? `<span class="l ${g[3] > CUR.l ? "x" : ""}">L${g[3]}</span>` : `<span class="l x">みんな外</span>`;
+      d = `<span class="k">${esc(g[0])}${g[1] && g[1]!==g[0] ? "（" + esc(g[1]) + "）" : ""}</span>${lv}<br>${esc(g[2])}`;
+    } else d = `<span class="k">${esc(seg.r || "")}</span>`;
+    const on = g && S.star[wordKey(g, seg)];
+    h += `<div class="sh-word"><div><div class="sh-w">${rubyHTML(seg.t, seg.r)}</div><div class="sh-d">${d}</div></div><button class="sh-x" id="sh-x">✕</button></div>
+      <div class="sh-btns">${g ? `<button id="sh-wstar" class="${on?"on":""}">${on?"★ 単語 キープ中":"☆ 単語をキープ"}</button>` : ""}<button id="sh-wsay">🔊 ${esc(seg.r || seg.t)}</button></div>`;
+  } else {
+    h += `<div class="sh-word"><div class="sh-d" style="margin-top:0"><span class="k">${SENT.length}文の${i+1}文目</span></div><button class="sh-x" id="sh-x">✕</button></div>`;
+  }
+  const sOn = !!S.star["s:" + CUR.id + ":" + sentTxt];
+  const bOn = !!S.bm[bmKey(CUR.id, i)];
+  h += `<div class="sh-sen">${x.segs.map(s => s.w ? rubyHTML(s.t, s.r) : esc(s.t)).join("")}</div>
+    <div class="sh-en" id="sh-en" style="display:none">${esc(x.r.e || "")}</div>
+    <div class="sh-btns">
+      <button class="pri" id="sh-play">▶ ここから</button>
+      <button id="sh-say">🔊 この文</button>
+      <button id="sh-entog">英訳</button>
+      <button id="sh-bm" class="${bOn?"on":""}">${bOn?"🔖 しおり中":"🔖 しおり"}</button>
+      <button id="sh-sstar" class="${sOn?"on":""}">${sOn?"★ 文 キープ中":"☆ 文をキープ"}</button>
+      ${phrase ? "" : `<button id="sh-phr">✂ フレーズ</button>`}
+    </div>`;
+  const sh = $("#sheet"); sh.innerHTML = h;
+  sh.classList.add("on"); $("#scrim").classList.add("on");
+  $("#sh-x").onclick = closeSheet;
+  $("#sh-entog").onclick = () => { const e = $("#sh-en"); e.style.display = e.style.display==="none" ? "block" : "none"; };
+  $("#sh-play").onclick = () => { closeSheet(); unlock(); setCursor(i, false); playFrom(i); };
+  $("#sh-say").onclick = () => { unlock(); stopPlay(true); const v = voiceFor(x.s);
+    speak(ttsText(x.segs), true, S.cfg.rate, false, { pitch:v.pitch, voice:v.voice, estLen:kanaText(x.segs).length }); };
+  $("#sh-bm").onclick = () => {
+    const key = bmKey(CUR.id, i);
+    if(S.bm[key]) delete S.bm[key];
+    else S.bm[key] = { id:CUR.id, i, t:sentTxt.slice(0,40), e:x.r.e || "", at:Date.now() };
+    save(); paintPill();
+    if(el) el.classList.toggle("bmk", !!S.bm[key]);
+    openSheet(i, k, phrase);
+  };
+  $("#sh-sstar").onclick = () => {
+    const key = "s:" + CUR.id + ":" + sentTxt;
+    if(S.star[key]) delete S.star[key];
+    else S.star[key] = { k:"s", id:CUR.id, i, t:sentTxt, r:kanaText(x.segs), e:x.r.e || "", at:Date.now() };
+    save(); paintPill(); openSheet(i, k, phrase);
+  };
+  if(!phrase){
+    const b = $("#sh-phr"); if(b) b.onclick = () => { closeSheet(); selMode = { i, k }; $("#selbar").classList.add("on");
+      const s = senEl(i).querySelector(`[data-k="${k}"]`); if(s) s.classList.add("sel"); };
+  }
+  if(phrase){
+    const segs = x.segs.slice(phrase[0], phrase[1]+1), txt = plainText(segs);
+    $("#sh-psay").onclick = () => { unlock(); speak(S.cfg.kana ? kanaText(segs) : ttsText(segs), true, S.cfg.rate, false, { estLen:kanaText(segs).length }); };
+    $("#sh-psave").onclick = () => {
+      S.star["p:" + CUR.id + ":" + txt] = { k:"p", id:CUR.id, i, t:txt, r:kanaText(segs), e:x.r.e || "", ctx:sentTxt, at:Date.now() };
+      save(); paintPill(); closeSheet(); toast("★ フレーズを保存しました");
+    };
+  }
+  const ws = $("#sh-wstar");
+  if(ws) ws.onclick = () => {
+    const key = wordKey(g, seg);
+    if(S.star[key]) delete S.star[key];
+    else S.star[key] = { k:"w", id:CUR.id, i, t:g[0], r:g[1] || seg.r || "", m:g[2], l:g[3], ctx:sentTxt, e:x.r.e || "", at:Date.now() };
+    save(); paintPill();
+    document.querySelectorAll("#r-body .w").forEach(w => {
+      const si = +w.closest(".sen").dataset.i, sg = SENT[si].segs[+w.dataset.k];
+      if(sg.g >= 0 && CUR.g[sg.g] && CUR.g[sg.g][0] === g[0]) w.classList.toggle("st", !!S.star[key]);
+    });
+    openSheet(i, k);
+  };
+  const wsay = $("#sh-wsay");
+  if(wsay) wsay.onclick = () => { unlock(); speak(seg.r || KATA(seg.t), true, 0.85); };
+}
+function finishPhrase(i, k){
+  const st = selMode; selMode = null; $("#selbar").classList.remove("on");
+  document.querySelectorAll("#r-body .sel").forEach(e => e.classList.remove("sel"));
+  if(i !== st.i){ toast("同じ文の中で選んでね — same sentence only"); return; }
+  openSheet(i, k, [Math.min(st.k, k), Math.max(st.k, k)]);
+}
+$("#sel-cancel").onclick = () => { selMode = null; $("#selbar").classList.remove("on");
+  document.querySelectorAll("#r-body .sel").forEach(e => e.classList.remove("sel")); };
+
+/* =====================================================================
+   キープ — ★ words, phrases, sentences, and 🔖 bookmarks
+   ===================================================================== */
+let KF = "all";
+function renderKeep(){
+  const items = Object.entries(S.star).map(([key, v]) => Object.assign({ key }, v));
+  const bms = Object.entries(S.bm).map(([key, v]) => Object.assign({ key, k:"b" }, v));
+  const all = items.concat(bms).filter(x => BY[x.id]).sort((a,b) => (b.at||0) - (a.at||0));
+  const n = { w:0, p:0, s:0, b:0 }; all.forEach(x => n[x.k]++);
+  const show = KF==="all" ? all : all.filter(x => x.k === KF);
+  const F = [["all","ぜんぶ",all.length],["w","単語",n.w],["p","フレーズ",n.p],["s","文",n.s],["b","🔖 しおり",n.b]];
+  const row = x => {
+    const s = BY[x.id];
+    let main, sub;
+    if(x.k === "w"){
+      main = esc(x.t) + (x.r && x.r !== x.t ? `<span style="font-size:13px;color:var(--dim)">（${esc(x.r)}）</span>` : "");
+      sub = `${esc(x.m||"")}${x.l ? ` ・ L${x.l}` : ` ・ みんな外`}`;
+    } else if(x.k === "b"){
+      main = esc(x.t) + (x.t.length >= 40 ? "…" : ""); sub = esc(x.e||"");
+    } else { main = esc(x.t); sub = esc(x.e||""); }
+    const lab = { w:"単語", p:"フレーズ", s:"文", b:"🔖" }[x.k];
+    return `<div class="krow"><div class="kl"><div class="kj">${main}</div>
+      <div class="kk">${lab} ・ ${esc(s.te)}</div>${sub ? `<div class="km">${sub}</div>` : ""}
+      ${x.k==="w" && x.ctx ? `<div class="kk" style="margin-top:4px">「${esc(x.ctx)}」</div>` : ""}</div>
+      <div class="kr"><button class="mini" data-go="${esc(x.key)}">読む →</button><button class="mini" data-del="${esc(x.key)}">✕</button></div></div>`;
+  };
+  $("#main").innerHTML = `
+  <div class="chips" id="kf">${F.map(f => `<button class="chip ${KF===f[0]?"on":""}" data-f="${f[0]}">${f[1]} ${f[2]}</button>`).join("")}</div>
+  ${KF!=="b" && (KF==="all"||KF==="w") && n.w ? `<div class="chips" style="margin-top:10px"><button class="chip" id="k-say">🔊 ★単語を聞く</button><button class="chip" id="k-copy">📋 コピー</button></div>` : (show.length ? `<div class="chips" style="margin-top:10px"><button class="chip" id="k-copy">📋 コピー</button></div>` : "")}
+  ${show.length ? show.map(row).join("") : `<div class="empty">まだありません。<br><span style="font-size:12px">Tap a word twice in any story → ☆ / 🔖 / ✂</span></div>`}`;
+  document.querySelectorAll("#kf .chip").forEach(b => b.onclick = () => { KF = b.dataset.f; renderKeep(); });
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    const k = b.dataset.del; if(S.star[k]) delete S.star[k]; else delete S.bm[k]; save(); paintPill(); renderKeep(); });
+  document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => {
+    const k = b.dataset.go, x = S.star[k] || S.bm[k]; if(!x) return;
+    const s = BY[x.id]; openStory(x.id, locate(s, x.i, (x.ctx || x.t || "").slice(0,14)));
+  });
+  const ks = $("#k-say");
+  if(ks) ks.onclick = async () => {
+    unlock();
+    const ws = all.filter(x => x.k === "w");
+    for(const w of ws){ await speak(w.r || w.t, true, 0.85); await sleep(500); if(TAB !== "keep") break; }
+  };
+  const kc = $("#k-copy");
+  if(kc) kc.onclick = async () => {
+    const t = show.map(x => x.k==="w" ? `${x.t}\t${x.r||""}\t${x.m||""}` : `${x.t}\t${x.e||""}`).join("\n");
+    try{ await navigator.clipboard.writeText(t); toast("コピーしました"); }catch(e){ prompt("Copy this:", t); }
+  };
+}
+
+/* =====================================================================
+   設定
+   ===================================================================== */
+function renderSettings(){
+  const vs = allVoices();
+  const ja = vs.filter(v => v.lang.replace("_","-").startsWith("ja"));
+  const opts = (list, sel) => `<option value="">自動で選ぶ</option>` +
+    list.map(v => `<option value="${esc(v.voiceURI)}" ${v.voiceURI===sel?"selected":""}>${esc(v.name)}${v.localService?"（端末内）":"（ネット）"}</option>`).join("");
+  const nst = Object.keys(S.star).length, nbm = Object.keys(S.bm).length;
+  $("#main").innerHTML = (noJa ? jaWarnHTML() : "") + `
+  <div class="sec">${RB("音声設定","おんせいせってい")}</div>
+  <select id="s-jv">${opts(ja, S.cfg.jvURI)}</select>
+  <div class="chips" style="margin-top:10px">
+    <button class="chip" id="s-test">▶ テスト</button>
+    <button class="chip" id="s-reset">${RB("音声","おんせい")}リセット</button>
+  </div>
+  <div class="sec">${RB("読","よ")}み${RB("上","あ")}げ</div>
+  <div class="chips">
+    <button class="chip ${!S.cfg.kana?"on":""}" id="s-kanji">${RB("漢字","かんじ")}のまま</button>
+    <button class="chip ${S.cfg.kana?"on":""}" id="s-kana">かなで</button>
+  </div>
+  <div class="hint" style="margin-top:8px">漢字のまま gives the synthesiser whole sentences with kanji, which sounds most natural; the handful of words it is known to misread are already fed as kana. かなで sends everything as kana — safest readings, slightly flatter intonation. Dialogue lines use a second Japanese voice if your device has one, otherwise the same voice at a different pitch.</div>
+  <div class="sec">キープ ・ しおり</div>
+  <div class="chips">
+    <button class="chip" id="s-exp">📋 ${RB("進捗","しんちょく")}をコピー</button>
+    <button class="chip" id="s-imp">${RB("貼","は")}り${RB("付","つ")}け</button>
+    <button class="chip" id="s-clear">★🔖 ${RB("全部消","ぜんぶけ")}す（${nst + nbm}）</button>
+  </div>
+  <div class="note"><b>Moving devices:</b> 進捗をコピー copies your ★, 🔖, 続き positions and 読了 marks as text — send it to yourself, then 貼り付け on the new device. Pasting <b>merges</b>; an old copy can't erase newer progress. The 糸。 home page backs this app up together with the others.</div>
+  <div class="sec">このアプリについて</div>
+  <div class="note">
+    <b>How the level is kept honest.</b> Every word in every story was checked by machine against the full Minna no Nihongo 初級 I &amp; II vocabulary list (MinnaNoDS), lesson by lesson: a story marked "max L27" contains no vocabulary word that Minna introduces after lesson 27. The rare exceptions (梅雨, ラーメン, アプリ…) are marked with a gold dotted line, always show furigana, and are listed at the end of the story.<br><br>
+    <b>What the machine can't check:</b> grammar. Grammar ceilings were kept by hand, against Minna's lesson order — if you spot a pattern that arrives too early, that's a real bug worth reporting with the story and sentence.<br><br>
+    Furigana come from a dictionary-based reader and were reviewed line by line; numbers keep their counter readings (20分 = ぷん). Stories are original — everyday life in Japan now, not textbook text.
+  </div>
+  ${canStore ? "" : `<div class="note" style="border-color:var(--akane)">⚠ This browser is blocking local storage, so ★ marks and bookmarks won't survive a reload. Private/Incognito mode is the usual cause.</div>`}`;
+  $("#s-jv").onchange = e => { S.cfg.jvURI = e.target.value; save(); pickVoices(); };
+  $("#s-test").onclick = () => { unlock(); speak("駅の前にコンビニがあります。", true, S.cfg.rate); };
+  $("#s-reset").onclick = () => { try{ speechSynthesis.cancel(); }catch(e){}
+    voicesSettled = false; unlocked = false; ensureVoices().then(() => speak("リセットしました。")); };
+  $("#s-kanji").onclick = () => { S.cfg.kana = false; save(); renderSettings(); };
+  $("#s-kana").onclick = () => { S.cfg.kana = true; save(); renderSettings(); };
+  $("#s-clear").onclick = () => { if(confirm("★ and 🔖 will be cleared (読了 marks stay). Continue?")){ S.star = {}; S.bm = {}; save(); renderSettings(); paintPill(); } };
+  $("#s-exp").onclick = async () => {
+    const t = JSON.stringify({ app:"dokkai", star:S.star, bm:S.bm, pos:S.pos, done:S.done });
+    S.lastBackup = Date.now(); save();
+    try{ await navigator.clipboard.writeText(t); alert("コピーしました！ Progress copied."); }
+    catch(e){ prompt("Copy this:", t); }
+  };
+  $("#s-imp").onclick = () => {
+    const t = prompt("Paste your saved progress:");
+    if(!t) return;
+    let p; try{ p = JSON.parse(t); }catch(e){ return alert("読み込めませんでした。Couldn't read that."); }
+    if(p && p.ito && p.data && p.data.dokkai_v1) p = p.data.dokkai_v1;   /* a whole-site backup */
+    if(!p || (!p.star && !p.bm && !p.pos && !p.done)) return alert("形式が違うみたいです。That doesn't look like a 読解の糸 backup.");
+    mergeInto(S, p); save(); paintPill(); renderSettings();
+    alert("復元しました！ Merged.");
+  };
+}
+/* merge never deletes, and the newer copy of anything wins */
+function mergeInto(cur, inc){
+  ["star","bm"].forEach(k => { cur[k] = cur[k] || {};
+    for(const x in (inc[k]||{})) if(!cur[k][x] || (inc[k][x].at||0) > (cur[k][x].at||0)) cur[k][x] = inc[k][x]; });
+  cur.pos = cur.pos || {};
+  for(const x in (inc.pos||{})) if(!cur.pos[x] || (inc.pos[x].at||0) > (cur.pos[x].at||0)) cur.pos[x] = inc.pos[x];
+  cur.done = cur.done || {};
+  for(const x in (inc.done||{})) if(!cur.done[x]) cur.done[x] = inc.done[x];
+}
+
+/* ================= boot ================= */
+paintPill();
+renderLib();
+window.__dokkai = { S, STORIES, SPOKEN, locate, parseJ, rubyHTML, ttsText, kanaText };
+
+})();
+</script>
+
+<script>
+/* auto-updater: iOS home-screen apps cache HTML hard. On launch, fetch a fresh
+   copy (cache-bypassed); if the server's APPV differs, load the fresh copy.
+   We navigate rather than document.write(): document.open() keeps the SAME
+   window, so top-level declarations from the outgoing copy survive and the
+   incoming copy dies on "already been declared" — a blank page.
+   Bump APPV each release. */
+(function(){var APPV="2026.10.14-1";
+try{if(sessionStorage.getItem("itoUpdDokkai")===APPV)return;}catch(e){}
+fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
+ .then(function(r){return r.ok?r.text():""})
+ .then(function(t){var m=t&&t.match(/APPV="([^"]+)"/);
+   if(m&&m[1]!==APPV){try{sessionStorage.setItem("itoUpdDokkai",m[1]);}catch(e){}
+     location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}})
+ .catch(function(){});})();
+</script>
+</body>
+</html>

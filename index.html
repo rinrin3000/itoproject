@@ -54,6 +54,10 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
   <div class="jj">試験<b>の</b>糸</div>
   <div class="dd">Cram flashcards, no schedule ・ words, grammar, every Minna verb in all its forms, and a Pimsleur-style speaking drill. Filter by 課, JLPT level or verb group.</div>
 </a>
+<a class="app" href="dokkai-no-ito.html">
+  <div class="jj">読解<b>の</b>糸</div>
+  <div class="dd">Leveled reading ・ original stories that never step past the Minna lesson you're on ・ furigana on tap, read aloud from any sentence, ★ words and phrases, 🔖 bookmarks.</div>
+</a>
 
 <div class="sec">バックアップ BACKUP</div>
 <div class="bx">
@@ -66,13 +70,13 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
   <div class="note" id="helpbox" style="display:none">
     <b>📲 Moving to a new phone, or just keeping a safety copy:</b><br>
     1. On the <b>old</b> device, tap <b>ぜんぶコピー</b>. Everything from every app on this
-    site is copied as one piece of text — your 文型の糸 SRS schedule and your 試験の糸 ★ list
-    together. Send it to yourself: message, email, notes app, anywhere.<br>
+    site is copied as one piece of text — your 文型の糸 SRS schedule, your 試験の糸 ★ list
+    and your 読解の糸 ★ / 🔖 together. Send it to yourself: message, email, notes app, anywhere.<br>
     2. On the <b>new</b> device, open this same page → <b>貼り付け</b> → paste → done.<br><br>
     <span style="color:var(--kuchiba)">Pasting MERGES.</span> An older backup can add things
     back but will never wipe newer progress, so importing the wrong copy can't cost you
     anything.<br><br>
-    Each app also has its own copy/paste inside its 設定 tab — this page just does both at
+    Each app also has its own copy/paste inside its 設定 tab — this page just does them all at
     once so nothing gets forgotten. Progress lives only in the browser that made it: it
     survives app updates on its own, but not a cleared browser or a new phone.
   </div>
@@ -90,7 +94,8 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
 (function(){
   var KEYS = [
     { k:"bunkei_v2", app:"文型の糸", count:function(o){ return o && o.cards ? Object.keys(o.cards).length : 0; }, unit:"threads" },
-    { k:"shiken_v1", app:"試験の糸", count:function(o){ return o && o.star  ? Object.keys(o.star).length  : 0; }, unit:"★" }
+    { k:"shiken_v1", app:"試験の糸", count:function(o){ return o && o.star  ? Object.keys(o.star).length  : 0; }, unit:"★" },
+    { k:"dokkai_v1", app:"読解の糸", count:function(o){ return o ? Object.keys(o.star||{}).length + Object.keys(o.bm||{}).length : 0; }, unit:"★🔖" }
   ];
   function read(k){ try{ var r = localStorage.getItem(k); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
   function paint(){
@@ -108,6 +113,12 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
         ? '🧵 <b>Worth copying somewhere safe.</b> ' + (days === null ? "You've never backed up." : "Last backup: " + days + " days ago.")
         : "Last backup: " + days + " days ago.";
     } else nudge.innerHTML = "";
+  }
+  /* newer-wins merge for keyed maps whose entries carry an .at timestamp */
+  function mergeNewer(cur, inc){
+    cur = cur || {};
+    for(var x in (inc || {})) if(!cur[x] || ((inc[x] && inc[x].at) || 0) > ((cur[x] && cur[x].at) || 0)) cur[x] = inc[x];
+    return cur;
   }
   document.getElementById("help").onclick = function(){
     var h = document.getElementById("helpbox");
@@ -146,6 +157,13 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
         cur.star = cur.star || {};
         for(var s in incoming.star) cur.star[s] = incoming.star[s];
       }
+      if(d.k === "dokkai_v1"){
+        cur.star = mergeNewer(cur.star, incoming.star);
+        cur.bm   = mergeNewer(cur.bm,   incoming.bm);
+        cur.pos  = mergeNewer(cur.pos,  incoming.pos);
+        cur.done = cur.done || {};
+        for(var dn in (incoming.done || {})) if(!cur.done[dn]) cur.done[dn] = incoming.done[dn];
+      }
       try{ localStorage.setItem(d.k, JSON.stringify(cur)); }catch(e){}
       report.push(d.app + ": now " + d.count(cur) + " " + d.unit);
     });
@@ -162,7 +180,7 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
    We navigate rather than document.write(): document.open() keeps the SAME
    window, so top-level declarations from the outgoing copy survive and the
    incoming copy dies on "already been declared" — a blank page. Bump APPV. */
-(function(){var APPV="2026.09.06-2";
+(function(){var APPV="2026.10.14-1";
 try{if(sessionStorage.getItem("itoUpdIndex")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
