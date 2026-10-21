@@ -2172,7 +2172,7 @@ const GRAM_S2=[
 {id:"GB02",lv:2,l:27,t:"動詞形",jp:"可能形",en:"I類 u→e row + る ／ II類 stem + られる ／ できる・来られる",ja:"日本語が話せます。",kn:"にほんごがはなせます。",ee:"I can speak Japanese.",n:"The object flips を→が once the verb is potential. 日本語を話せます is heard, but が is the marked-correct answer."},
 {id:"GB03",lv:2,l:27,t:"対比",jp:"見えます ⇔ 見られます",en:"見えます = it's visible (nothing you did); 見られます = you're able to see it",ja:"部屋から海が見えます。",kn:"へやからうみがみえます。",ee:"You can see the sea from the room.",n:"見えます isn't a potential form at all — it's its own verb meaning the thing enters your eyes. 見られます means the opportunity exists. Same for 聞こえます ⇔ 聞けます."},
 {id:"GB04",lv:2,l:27,t:"文型",jp:"〜しか〜ません",en:"only ～ (and that's not enough)",ja:"百円しかありません。",kn:"ひゃくえんしかありません。",ee:"I only have 100 yen.",n:"しか REQUIRES a negative verb, and it carries regret. だけ is neutral: 百円だけあります is just a fact."},
-{id:"GB05",lv:2,l:28,t:"文型",jp:"〜ながら",en:"doing A while doing B (same person, B is the main action)",ja:"音楽を聞きながら勉強します。",kn:"おんがくをききながらべんきょうします。",ee:"I study while listening to music.",n:"ますstem + ながら. The MAIN action is the second one — 聞きながら勉強します is studying, not listening."},
+{id:"GB05",lv:2,l:28,t:"文型",jp:"〜ながら",en:"doing B on the side while doing A (same person) — the ながら verb is the SIDE action",ja:"音楽を聞きながら勉強します。",kn:"おんがくをききながらべんきょうします。",ee:"I listen to music while I study.",n:"ますstem + ながら. The MAIN action is the second one — 聞きながら勉強します is studying, not listening. English flips the order: the main activity goes AFTER 'while' — 'I listen to music while I study.' Map AながらB → 'A while B', never 'B while A'."},
 {id:"GB06",lv:2,l:29,t:"自他",jp:"自動詞 ⇔ 他動詞",en:"自動詞: が + happens by itself ／ 他動詞: を + someone does it",ja:"窓が開いています。",kn:"まどがあいています。",ee:"The window is open.",n:"開きます/開けます, 閉まります/閉めます, つきます/つけます — pairs that English collapses into one word. The particle gives it away: が for 自, を for 他."},
 {id:"GB07",lv:2,l:29,t:"対比",jp:"〜ています ⇔ 〜てあります",en:"自動詞+ています = just the state ／ 他動詞+てあります = state someone made on purpose",ja:"窓が開けてあります。",kn:"まどがあけてあります。",ee:"The window has been opened [by someone, deliberately].",n:"The most-tested contrast in Shokyuu II. 開いています = it's open, no comment on why. 開けてあります = somebody opened it and left it that way. Note てあります takes が even though 開けます is a を-verb."},
 {id:"GB08",lv:2,l:30,t:"文型",jp:"〜ておきます",en:"do ～ in advance / leave it done",ja:"旅行の前に切符を買っておきます。",kn:"りょこうのまえにきっぷをかっておきます。",ee:"I'll buy the tickets before the trip.",n:"Preparation with an eye on later. Contracts to 〜とく in speech: 買っとく."},
@@ -2619,16 +2619,16 @@ const DRILL_E=[
 {l:27,t:"〜しか〜ません",ja:"財布に千円しかありません。",kn:"さいふにせんえんしかありません。",en:"I've only got a thousand yen in my wallet."},
 {l:27,t:"〜しか〜ません",ja:"日曜日しか休めません。",kn:"にちようびしかやすめません。",en:"I can only take Sundays off."},
 {l:27,t:"〜は（対比）",ja:"ひらがなは書けますが、漢字は書けません。",kn:"ひらがなはかけますが、かんじはかけません。",en:"Hiragana I can write — kanji I can't."},
-{l:28,t:"〜ながら",ja:"音楽を聞きながら、勉強します。",kn:"おんがくをききながら、べんきょうします。",en:"I study while listening to music."},
+{l:28,t:"〜ながら",ja:"音楽を聞きながら、勉強します。",kn:"おんがくをききながら、べんきょうします。",en:"I listen to music while I study."},
 {l:28,t:"〜ながら",ja:"コーヒーを飲みながら、新聞を読みます。",kn:"コーヒーをのみながら、しんぶんをよみます。",en:"I read the paper over a cup of coffee."},
-{l:28,t:"〜ながら",ja:"働きながら、大学で勉強しています。",kn:"はたらきながら、だいがくでべんきょうしています。",en:"I'm studying at university while working."},
+{l:28,t:"〜ながら",ja:"働きながら、大学で勉強しています。",kn:"はたらきながら、だいがくでべんきょうしています。",en:"I'm working a part-time job while studying at university."},
 {l:28,t:"〜ています（習慣）",ja:"毎朝、公園を散歩しています。",kn:"まいあさ、こうえんをさんぽしています。",en:"I walk in the park every morning."},
 {l:28,t:"〜ています（習慣）",ja:"一週間に二回、日本語の教室に通っています。",kn:"いちしゅうかんににかい、にほんごのきょうしつにかよっています。",en:"I go to Japanese class twice a week."},
 {l:28,t:"〜し、〜し",ja:"この店は安いし、おいしいし、よく来ます。",kn:"このみせはやすいし、おいしいし、よくきます。",en:"This place is cheap and good, so I come here a lot."},
 {l:28,t:"〜し、〜し",ja:"駅から近いし、静かだし、この部屋にします。",kn:"えきからちかいし、しずかだし、このへやにします。",en:"It's close to the station and quiet, so I'll take this room."},
 {l:28,t:"〜し、〜し",ja:"雨も降っているし、きょうはうちにいます。",kn:"あめもふっているし、きょうはうちにいます。",en:"It's raining and all, so I'm staying home today."},
 {l:28,t:"それで",ja:"道がわからなかったんです。それで、遅れました。",kn:"みちがわからなかったんです。それで、おくれました。",en:"I didn't know the way. That's why I was late."},
-{l:28,t:"〜ながら",ja:"歩きながら、電話しないでください。",kn:"あるきながら、でんわしないでください。",en:"Please don't talk on the phone while walking."},
+{l:28,t:"〜ながら",ja:"歩きながら、電話しないでください。",kn:"あるきながら、でんわしないでください。",en:"Please don't walk around while talking on the phone."},
 {l:29,t:"〜ています（状態）",ja:"窓が開いています。",kn:"まどがあいています。",en:"The window's open."},
 {l:29,t:"〜ています（状態）",ja:"電気が消えています。",kn:"でんきがきえています。",en:"The lights are off."},
 {l:29,t:"〜ています（状態）",ja:"このコップは割れています。",kn:"このコップはわれています。",en:"This glass is broken."},
@@ -3947,7 +3947,7 @@ ensureVoices().then(() => { if(noJa && TAB !== "set") setTab(TAB); });
    plus the new ?v= URL make a reload loop impossible.
    Same origin either way, so localStorage/★ marks are untouched.
    Bump APPV each release. */
-(function(){var APPV="2026.10.15-1";
+(function(){var APPV="2026.10.21-1";
 try{if(sessionStorage.getItem("itoUpdShiken")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
