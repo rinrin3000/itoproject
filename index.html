@@ -50,6 +50,10 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
   <div class="jj">文型<b>の</b>糸</div>
   <div class="dd">Anchor-sentence SRS ・ re-thread the slot ・ hands-free 型ドリル with gaps for speaking.</div>
 </a>
+<a class="app" href="goi-no-ito.html">
+  <div class="jj">語彙<b>の</b>糸</div>
+  <div class="dd">Word SRS for every Minna 初級 word, L1–50 ・ you choose what goes in: sort each word 🌳 ○ △ and add it — no daily quota ・ textbook meanings, example sentences with audio ・ フラッシュ cram mode with shuffle and a 苦手 list.</div>
+</a>
 <a class="app" href="shiken-no-ito.html">
   <div class="jj">試験<b>の</b>糸</div>
   <div class="dd">Cram flashcards, no schedule ・ words, grammar, every Minna verb in all its forms, and a Pimsleur-style speaking drill. Filter by 課, JLPT level or verb group.</div>
@@ -70,7 +74,7 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
   <div class="note" id="helpbox" style="display:none">
     <b>📲 Moving to a new phone, or just keeping a safety copy:</b><br>
     1. On the <b>old</b> device, tap <b>ぜんぶコピー</b>. Everything from every app on this
-    site is copied as one piece of text — your 文型の糸 SRS schedule, your 試験の糸 ★ list
+    site is copied as one piece of text — your 文型の糸 and 語彙の糸 SRS schedules, your 試験の糸 ★ list
     and your 読解の糸 ★ / 🔖 together. Send it to yourself: message, email, notes app, anywhere.<br>
     2. On the <b>new</b> device, open this same page → <b>貼り付け</b> → paste → done.<br><br>
     <span style="color:var(--kuchiba)">Pasting MERGES.</span> An older backup can add things
@@ -94,6 +98,7 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
 (function(){
   var KEYS = [
     { k:"bunkei_v2", app:"文型の糸", count:function(o){ return o && o.cards ? Object.keys(o.cards).length : 0; }, unit:"threads" },
+    { k:"goi_v1",    app:"語彙の糸", count:function(o){ return o && o.cards ? Object.keys(o.cards).length : 0; }, unit:"words" },
     { k:"shiken_v1", app:"試験の糸", count:function(o){ return o && o.star  ? Object.keys(o.star).length  : 0; }, unit:"★" },
     { k:"dokkai_v1", app:"読解の糸", count:function(o){ return o ? Object.keys(o.star||{}).length + Object.keys(o.bm||{}).length : 0; }, unit:"★🔖" }
   ];
@@ -153,6 +158,12 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
         cur.cards = cur.cards || {};
         for(var id in incoming.cards) if(!(id in cur.cards)) cur.cards[id] = incoming.cards[id];
       }
+      if(d.k === "goi_v1"){
+        cur.cards = mergeNewer(cur.cards, incoming.cards);   /* every 語彙の糸 card carries .at */
+        cur.miss  = mergeNewer(cur.miss,  incoming.miss);    /* 苦手 counts, also .at */
+        cur.star  = cur.star || {};
+        for(var gs in (incoming.star || {})) if(!cur.star[gs]) cur.star[gs] = incoming.star[gs];
+      }
       if(d.k === "shiken_v1" && incoming.star){
         cur.star = cur.star || {};
         for(var s in incoming.star) cur.star[s] = incoming.star[s];
@@ -180,7 +191,7 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
    We navigate rather than document.write(): document.open() keeps the SAME
    window, so top-level declarations from the outgoing copy survive and the
    incoming copy dies on "already been declared" — a blank page. Bump APPV. */
-(function(){var APPV="2026.10.14-1";
+(function(){var APPV="2026.11.14-2";
 try{if(sessionStorage.getItem("itoUpdIndex")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
