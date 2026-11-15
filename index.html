@@ -98,7 +98,7 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
 (function(){
   var KEYS = [
     { k:"bunkei_v2", app:"文型の糸", count:function(o){ return o && o.cards ? Object.keys(o.cards).length : 0; }, unit:"threads" },
-    { k:"goi_v1",    app:"語彙の糸", count:function(o){ return o && o.cards ? Object.keys(o.cards).length : 0; }, unit:"words" },
+    { k:"goi_v1",    app:"語彙の糸", count:function(o){ return o && o.cards ? Object.keys(o.cards).filter(function(k){ return !/e$/.test(k); }).length : 0; }, unit:"words" },
     { k:"shiken_v1", app:"試験の糸", count:function(o){ return o && o.star  ? Object.keys(o.star).length  : 0; }, unit:"★" },
     { k:"dokkai_v1", app:"読解の糸", count:function(o){ return o ? Object.keys(o.star||{}).length + Object.keys(o.bm||{}).length : 0; }, unit:"★🔖" }
   ];
@@ -191,7 +191,7 @@ ruby rt{font-size:.5em;color:var(--dim);font-weight:400}
    We navigate rather than document.write(): document.open() keeps the SAME
    window, so top-level declarations from the outgoing copy survive and the
    incoming copy dies on "already been declared" — a blank page. Bump APPV. */
-(function(){var APPV="2026.11.14-2";
+(function(){var APPV="2026.11.15-1";
 try{if(sessionStorage.getItem("itoUpdIndex")===APPV)return;}catch(e){}
 fetch(location.pathname+"?vc="+Date.now(),{cache:"no-store"})
  .then(function(r){return r.ok?r.text():""})
